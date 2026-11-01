@@ -1,0 +1,1 @@
+"""NeuralNotes application package."""
