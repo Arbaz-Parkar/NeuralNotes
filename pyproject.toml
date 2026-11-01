@@ -13,7 +13,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff==0.17.3"]
+dev = [
+    "pytest==9.2.0",
+    "pytest-cov==7.1.0",
+    "ruff==0.17.3",
+]
 
 [tool.ruff]
 line-length = 88
@@ -22,3 +26,22 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest]
+minversion = "9.2"
+addopts = [
+    "-ra",
+    "--strict-config",
+    "--strict-markers",
+    "--cov=neuralnotes",
+    "--cov-report=term-missing",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["neuralnotes"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
