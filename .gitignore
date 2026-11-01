@@ -1,0 +1,51 @@
+# Python bytecode and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Test, lint, type-check, and coverage output
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Local secrets (keep the committed template)
+.env
+.env.*
+!.env.example
+
+# Downloaded documents, local databases, vectors, and model artifacts
+data/raw/
+data/processed/
+data/vector_store/
+data/chroma/
+data/cache/
+*.sqlite
+*.sqlite3
+*.db
+*.faiss
+*.index
+models/
+
+# Generated reports, traces, logs, and experiment tracking output
+outputs/
+artifacts/
+logs/
+*.log
+mlruns/
+
+# Frontend dependencies and build output
+node_modules/
+frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
