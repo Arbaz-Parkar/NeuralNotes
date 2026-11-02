@@ -1,7 +1,7 @@
 PYTHON ?= python
 RUFF ?= ruff
 
-.PHONY: test lint format format-check
+.PHONY: test lint format format-check run
 
 test:
 	$(PYTHON) -m pytest
@@ -14,3 +14,6 @@ format:
 
 format-check:
 	$(RUFF) format --check src tests
+
+run:
+	$(PYTHON) -m uvicorn neuralnotes.api:app --reload

@@ -8,12 +8,15 @@ version = "0.1.0"
 description = "A traceable, evaluated workspace for studying and researching technical documents."
 requires-python = ">=3.11,<3.13"
 dependencies = [
+    "fastapi==0.162.0",
     "pydantic==2.14.2",
     "pydantic-settings==2.16.2",
+    "uvicorn==0.54.0",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "httpx==0.28.1",
     "pre-commit==4.7.0",
     "pytest==9.2.0",
     "pytest-cov==7.1.0",
