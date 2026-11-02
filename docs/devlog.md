@@ -10,5 +10,6 @@
 
 - Completed Phase 1: local pgvector database, FastAPI health endpoint, and first CI workflow, alongside the package, settings, logging, errors, and quality tooling.
 - Verified the database health and pgvector version (`0.8.7`), the health endpoint (`ok`), and CI on Python 3.11 and 3.12.
+- Phase 2 decision: use post-2016 ACL Anthology papers for the initial NLP-focused corpus, with an official license check for every manifest entry.
 - Blocker: Docker Desktop was initially stopped; started it and completed the database check.
-- Next: begin Phase 2 with an open-access paper manifest and source/licence checks before downloading documents.
+- Next: select the initial paper IDs and create the manifest with source and license evidence before downloading documents.
