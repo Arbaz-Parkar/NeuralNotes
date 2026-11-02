@@ -111,6 +111,61 @@
       "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "license_evidence_url": "https://aclanthology.org/2025.findings-naacl.157/",
       "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.acl-long.319",
+      "title": "Adaptive Retrieval Without Self-Knowledge? Bringing Uncertainty Back Home",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.acl-long.319/",
+      "pdf_url": "https://aclanthology.org/2025.acl-long.319.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.acl-long.319/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.findings-acl.652",
+      "title": "CtrlA: Adaptive Retrieval-Augmented Generation via Inherent Control",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.findings-acl.652/",
+      "pdf_url": "https://aclanthology.org/2025.findings-acl.652.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.findings-acl.652/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.findings-acl.624",
+      "title": "GeAR: Graph-enhanced Agent for Retrieval-augmented Generation",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.findings-acl.624/",
+      "pdf_url": "https://aclanthology.org/2025.findings-acl.624.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.findings-acl.624/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.emnlp-main.1674",
+      "title": "OG-RAG: Ontology-grounded retrieval-augmented generation for large language models",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.emnlp-main.1674/",
+      "pdf_url": "https://aclanthology.org/2025.emnlp-main.1674.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.emnlp-main.1674/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2024.findings-acl.415",
+      "title": "RetrievalQA: Assessing Adaptive Retrieval-Augmented Generation for Short-form Open-Domain Question Answering",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.findings-acl.415/",
+      "pdf_url": "https://aclanthology.org/2024.findings-acl.415.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.findings-acl.415/",
+      "license_verified_on": "2026-11-02"
     }
   ]
 }

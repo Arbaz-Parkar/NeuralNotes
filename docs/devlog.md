@@ -12,5 +12,5 @@
 - Verified the database health and pgvector version (`0.8.7`), the health endpoint (`ok`), and CI on Python 3.11 and 3.12.
 - Phase 2 decision: use post-2016 ACL Anthology papers for the initial NLP-focused corpus, with an official license check for every manifest entry.
 - Blocker: Docker Desktop was initially stopped; started it and completed the database check.
-- Expanded the manifest to ten paper records, each checked against its official ACL Anthology license statement; no PDFs are committed.
+- Expanded the manifest to fifteen paper records, each checked against its official ACL Anthology license statement; no PDFs are committed.
 - Next: extend the manifest toward the 30–60 paper corpus, then implement a rate-conscious downloader.
