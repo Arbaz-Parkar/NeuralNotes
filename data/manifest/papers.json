@@ -56,6 +56,61 @@
       "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "license_evidence_url": "https://aclanthology.org/2026.findings-acl.849/",
       "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2023.emnlp-main.585",
+      "title": "Query2doc: Query Expansion with Large Language Models",
+      "year": 2023,
+      "landing_page_url": "https://aclanthology.org/2023.emnlp-main.585/",
+      "pdf_url": "https://aclanthology.org/2023.emnlp-main.585.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2023.emnlp-main.585/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2023.findings-acl.768",
+      "title": "Expand, Rerank, and Retrieve: Query Reranking for Open-Domain Question Answering",
+      "year": 2023,
+      "landing_page_url": "https://aclanthology.org/2023.findings-acl.768/",
+      "pdf_url": "https://aclanthology.org/2023.findings-acl.768.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2023.findings-acl.768/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2024.findings-emnlp.449",
+      "title": "BERGEN: A Benchmarking Library for Retrieval-Augmented Generation",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.findings-emnlp.449/",
+      "pdf_url": "https://aclanthology.org/2024.findings-emnlp.449.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.findings-emnlp.449/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2024.eacl-demo.16",
+      "title": "RAGAs: Automated Evaluation of Retrieval Augmented Generation",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.eacl-demo.16/",
+      "pdf_url": "https://aclanthology.org/2024.eacl-demo.16.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.eacl-demo.16/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.findings-naacl.157",
+      "title": "MIRAGE: A Metric-Intensive Benchmark for Retrieval-Augmented Generation Evaluation",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.findings-naacl.157/",
+      "pdf_url": "https://aclanthology.org/2025.findings-naacl.157.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.findings-naacl.157/",
+      "license_verified_on": "2026-11-02"
     }
   ]
 }
