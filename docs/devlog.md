@@ -1,0 +1,14 @@
+# Development log
+
+## Weekly review — 2026-11-01
+
+- Started Phase 1 and confirmed the repository needed its application foundation.
+- Phase 1 extended into Day 2; the Week 1 target of completing Phases 1–4 by 7 November remains ahead.
+- Next: finish the foundation and verify its database, API, and CI pieces.
+
+## 2026-11-02
+
+- Completed Phase 1: local pgvector database, FastAPI health endpoint, and first CI workflow, alongside the package, settings, logging, errors, and quality tooling.
+- Verified the database health and pgvector version (`0.8.7`), the health endpoint (`ok`), and CI on Python 3.11 and 3.12.
+- Blocker: Docker Desktop was initially stopped; started it and completed the database check.
+- Next: begin Phase 2 with an open-access paper manifest and source/licence checks before downloading documents.
