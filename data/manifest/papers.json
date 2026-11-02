@@ -1,0 +1,61 @@
+{
+  "source": "ACL Anthology",
+  "license_policy": "Include post-2016 papers only after checking the official landing page for the CC BY 4.0 statement.",
+  "papers": [
+    {
+      "anthology_id": "2020.emnlp-main.550",
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "year": 2020,
+      "landing_page_url": "https://aclanthology.org/2020.emnlp-main.550/",
+      "pdf_url": "https://aclanthology.org/2020.emnlp-main.550.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2020.emnlp-main.550/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2024.emnlp-main.845",
+      "title": "Dense X Retrieval: What Retrieval Granularity Should We Use?",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.emnlp-main.845/",
+      "pdf_url": "https://aclanthology.org/2024.emnlp-main.845.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.emnlp-main.845/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2024.findings-emnlp.678",
+      "title": "R2AG: Incorporating Retrieval Information into Retrieval Augmented Generation",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.findings-emnlp.678/",
+      "pdf_url": "https://aclanthology.org/2024.findings-emnlp.678.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.findings-emnlp.678/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2025.tacl-1.36",
+      "title": "mt RAG: A Multi-Turn Conversational Benchmark for Evaluating Retrieval-Augmented Generation Systems",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.tacl-1.36/",
+      "pdf_url": "https://aclanthology.org/2025.tacl-1.36.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.tacl-1.36/",
+      "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2026.findings-acl.849",
+      "title": "RAG in the Wild: On the (In)effectiveness of LLMs with Mixture-of-Knowledge Retrieval Augmentation",
+      "year": 2026,
+      "landing_page_url": "https://aclanthology.org/2026.findings-acl.849/",
+      "pdf_url": "https://aclanthology.org/2026.findings-acl.849.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2026.findings-acl.849/",
+      "license_verified_on": "2026-11-02"
+    }
+  ]
+}
