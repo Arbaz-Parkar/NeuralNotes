@@ -5,11 +5,11 @@
 ## Candidates
 
 - **pypdf 6.21.4** — pure-Python PDF library under BSD-3-Clause. We will use its default `PageObject.extract_text()` mode.
-- **pdfplumber 0.11.10** — exposes character geometry and table-extraction tools under MIT. We will use its default `Page.extract_text()` mode.
+- **pdfplumber 0.11.10** — exposes character geometry and table-extraction tools under MIT. We will compare its default `Page.extract_text()` mode with `Page.extract_text(layout=True)`.
 
-Both libraries support Python 3.11. These are pinned in the `parser-eval` optional dependency group for a reproducible comparison. `pdfplumber` documents layout-preserving extraction as experimental, so the first pass uses both libraries' default text modes. No OCR is included.
+Both libraries support Python 3.11. These are pinned in the `parser-eval` optional dependency group for a reproducible comparison. `pdfplumber` documents layout-preserving extraction as experimental; it is included as a separate configuration so its result can be compared with the default. No OCR is included.
 
-The libraries offer different trade-offs: pypdf is a small, pure-Python dependency with text and PDF object access; pdfplumber builds on pdfminer.six and also exposes positioned characters, layout tools, and table extraction. The initial comparison focuses on extracted text and reading order; a later ingestion implementation can use pdfplumber's table tools if the sample shows a practical benefit.
+The libraries offer different trade-offs: pypdf is a pure-Python dependency with text and PDF object access; pdfplumber builds on pdfminer.six and also exposes positioned characters, layout tools, and table extraction. The comparison focuses on extracted text and reading order; a later ingestion implementation can use pdfplumber's table tools if the sample shows a practical benefit.
 
 ## Sample
 
@@ -45,6 +45,8 @@ The runner completed on all five papers with both parsers. This was one run on t
 - Both parsers returned the same page count for each paper. The large word-count difference needs inspection in the saved text outputs before it can be explained.
 
 No parser has been selected. Human scores for column order, equations, tables, and section flow are still pending.
+
+A visual spot-check of the first sample showed readable word spacing in pypdf's output and many joined words in pdfplumber's default output. This may explain much of the word-count gap because the current word metric splits on whitespace. It is only one sample and one pdfplumber configuration, so the runner now also checks `layout=True` before a parser decision.
 
 ## Run
 

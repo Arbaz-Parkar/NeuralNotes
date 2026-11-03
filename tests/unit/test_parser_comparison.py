@@ -51,10 +51,34 @@ def test_manual_review_template_lists_each_parser_for_each_paper(
     assert all(field in rows[0] for field in MANUAL_REVIEW_FIELDS)
 
 
-def test_manual_review_template_preserves_existing_scores(tmp_path) -> None:
+def test_manual_review_template_preserves_scores_and_adds_new_parser(tmp_path) -> None:
     template_path = tmp_path / "manual_review.csv"
-    template_path.write_text("human scores stay here\n", encoding="utf-8")
+    with template_path.open("w", encoding="utf-8", newline="") as review_file:
+        writer = csv.DictWriter(
+            review_file,
+            fieldnames=("paper_id", "parser", *MANUAL_REVIEW_FIELDS),
+        )
+        writer.writeheader()
+        writer.writerow(
+            {
+                "paper_id": SAMPLE_PAPER_IDS[0],
+                "parser": PARSER_NAMES[0],
+                "two_column_order_1_to_5": "4",
+                "notes": "Existing human note",
+            }
+        )
 
     _write_manual_review_template(template_path)
 
-    assert template_path.read_text(encoding="utf-8") == "human scores stay here\n"
+    with template_path.open(encoding="utf-8", newline="") as review_file:
+        rows = list(csv.DictReader(review_file))
+
+    assert len(rows) == len(SAMPLE_PAPER_IDS) * len(PARSER_NAMES)
+    saved_score = next(
+        row
+        for row in rows
+        if row["paper_id"] == SAMPLE_PAPER_IDS[0] and row["parser"] == PARSER_NAMES[0]
+    )
+    assert saved_score["two_column_order_1_to_5"] == "4"
+    assert saved_score["notes"] == "Existing human note"
+    assert any(row["parser"] == "pdfplumber-layout" for row in rows)

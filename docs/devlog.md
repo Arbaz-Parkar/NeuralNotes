@@ -24,5 +24,6 @@
 - Downloaded all 30 manifest papers locally: 30 downloaded, zero skipped, zero failed; PDFs remain in Git-ignored storage.
 - Started the main README with the verified project status, architecture diagram, Windows quick start, and explicit unfinished work; it will be updated as each phase advances.
 - Ran the pypdf versus pdfplumber comparison on five papers (84 pages): pypdf extracted 49,567 words in about 7.82 seconds; pdfplumber extracted 24,659 words in about 19.72 seconds. These one-run counts and timings do not determine quality; manual review is pending.
-- Added local-only extraction outputs and a manual score sheet; no production parser has been selected.
-- Next: inspect the outputs for column order, equations, and tables, complete the score sheet, then choose and document the parser.
+- A screenshot review of the first paper shows pypdf's spacing is readable while pdfplumber's default output joins many words. Added a `pdfplumber` layout-mode variant to distinguish configuration from parser choice.
+- Added local-only extraction outputs and an expanding manual score sheet that preserves existing scores; no production parser has been selected.
+- Next: rerun the comparison, inspect the pypdf and pdfplumber-layout outputs, then review the remaining sample papers for column order, equations, and tables.

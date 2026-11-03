@@ -32,7 +32,7 @@ SAMPLE_PAPER_IDS = (
     "2025.findings-acl.624",
 )
 
-PARSER_NAMES = ("pypdf", "pdfplumber")
+PARSER_NAMES = ("pypdf", "pdfplumber", "pdfplumber-layout")
 MANUAL_REVIEW_FIELDS = (
     "two_column_order_1_to_5",
     "equation_readability_1_to_5",
@@ -65,11 +65,19 @@ def _extract_with_pypdf(pdf_path: Path) -> list[str]:
     return [page.extract_text() or "" for page in reader.pages]
 
 
-def _extract_with_pdfplumber(pdf_path: Path) -> list[str]:
+def _extract_with_pdfplumber(pdf_path: Path, *, layout: bool = False) -> list[str]:
     import pdfplumber
 
     with pdfplumber.open(pdf_path) as pdf:
-        return [page.extract_text() or "" for page in pdf.pages]
+        return [page.extract_text(layout=layout) or "" for page in pdf.pages]
+
+
+def _extract_with_pdfplumber_default(pdf_path: Path) -> list[str]:
+    return _extract_with_pdfplumber(pdf_path)
+
+
+def _extract_with_pdfplumber_layout(pdf_path: Path) -> list[str]:
+    return _extract_with_pdfplumber(pdf_path, layout=True)
 
 
 def _package_version(package_name: str) -> str:
@@ -89,27 +97,49 @@ def _write_extracted_text(path: Path, page_texts: Sequence[str]) -> None:
 
 
 def _write_manual_review_template(path: Path) -> None:
-    if path.exists():
-        return
-
     fieldnames = ("paper_id", "parser", *MANUAL_REVIEW_FIELDS)
+    rows_by_key: dict[tuple[str, str], dict[str, str]] = {}
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as review_file:
+            for row in csv.DictReader(review_file):
+                paper_id = row.get("paper_id", "")
+                parser_name = row.get("parser", "")
+                if paper_id in SAMPLE_PAPER_IDS and parser_name in PARSER_NAMES:
+                    key = (paper_id, parser_name)
+                    rows_by_key[key] = {
+                        field: row.get(field, "") or "" for field in fieldnames
+                    }
+
+    for paper_id in SAMPLE_PAPER_IDS:
+        for parser_name in PARSER_NAMES:
+            key = (paper_id, parser_name)
+            rows_by_key.setdefault(
+                key,
+                {
+                    "paper_id": paper_id,
+                    "parser": parser_name,
+                    **{field: "" for field in MANUAL_REVIEW_FIELDS},
+                },
+            )
+
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as review_file:
         writer = csv.DictWriter(review_file, fieldnames=fieldnames)
         writer.writeheader()
-        for paper_id in SAMPLE_PAPER_IDS:
-            for parser_name in PARSER_NAMES:
-                writer.writerow({"paper_id": paper_id, "parser": parser_name})
+        writer.writerows(rows_by_key.values())
 
 
 def _run_parser(parser_name: str, pdf_path: Path) -> tuple[list[str], float, str]:
     extract = {
         "pypdf": _extract_with_pypdf,
-        "pdfplumber": _extract_with_pdfplumber,
+        "pdfplumber": _extract_with_pdfplumber_default,
+        "pdfplumber-layout": _extract_with_pdfplumber_layout,
     }[parser_name]
     started_at = time.perf_counter()
     page_texts = extract(pdf_path)
     elapsed_seconds = time.perf_counter() - started_at
-    return page_texts, elapsed_seconds, _package_version(parser_name)
+    package_name = "pdfplumber" if parser_name.startswith("pdfplumber") else parser_name
+    return page_texts, elapsed_seconds, _package_version(package_name)
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -197,6 +227,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "extraction_modes": {
             "pypdf": "PageObject.extract_text() default mode",
             "pdfplumber": "Page.extract_text() default mode",
+            "pdfplumber-layout": "Page.extract_text(layout=True)",
         },
         "results": results,
         "note": (
