@@ -14,3 +14,8 @@
 - Blocker: Docker Desktop was initially stopped; started it and completed the database check.
 - Expanded the manifest to fifteen paper records, each checked against its official ACL Anthology license statement; no PDFs are committed.
 - Next: extend the manifest toward the 30–60 paper corpus, then implement a rate-conscious downloader.
+
+## 2026-11-03
+
+- Added five more license-checked ACL Anthology papers covering active retrieval, RAG best practices, source reliability, RAG reasoning, and robustness; the manifest now contains twenty records and no PDFs.
+- Next: continue building the 30–60 paper corpus before implementing the downloader.

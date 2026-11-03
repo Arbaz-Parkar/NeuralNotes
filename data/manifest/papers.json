@@ -166,6 +166,61 @@
       "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "license_evidence_url": "https://aclanthology.org/2024.findings-acl.415/",
       "license_verified_on": "2026-11-02"
+    },
+    {
+      "anthology_id": "2023.emnlp-main.495",
+      "title": "Active Retrieval Augmented Generation",
+      "year": 2023,
+      "landing_page_url": "https://aclanthology.org/2023.emnlp-main.495/",
+      "pdf_url": "https://aclanthology.org/2023.emnlp-main.495.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2023.emnlp-main.495/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2024.emnlp-main.981",
+      "title": "Searching for Best Practices in Retrieval-Augmented Generation",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.emnlp-main.981/",
+      "pdf_url": "https://aclanthology.org/2024.emnlp-main.981.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.emnlp-main.981/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.emnlp-main.1738",
+      "title": "Retrieval-Augmented Generation with Estimation of Source Reliability",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.emnlp-main.1738/",
+      "pdf_url": "https://aclanthology.org/2025.emnlp-main.1738.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.emnlp-main.1738/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.findings-emnlp.648",
+      "title": "A Survey of RAG-Reasoning Systems in Large Language Models",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.findings-emnlp.648/",
+      "pdf_url": "https://aclanthology.org/2025.findings-emnlp.648.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.findings-emnlp.648/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2026.findings-emnlp.1269",
+      "title": "Retrieved But Not Reliable: A Survey on Attacks, and Defenses in Retrieval-Augmented Generation",
+      "year": 2026,
+      "landing_page_url": "https://aclanthology.org/2026.findings-emnlp.1269/",
+      "pdf_url": "https://aclanthology.org/2026.findings-emnlp.1269.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2026.findings-emnlp.1269/",
+      "license_verified_on": "2026-11-03"
     }
   ]
 }
