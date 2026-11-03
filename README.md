@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 3 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, and an initial page-preserving whitespace cleaner is implemented; focused cleaner validation is pending.
+> **Project status — 3 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, and the page-preserving whitespace cleaner passes its focused tests and quality checks.
 
 ## What works today
 
@@ -11,8 +11,8 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A manifest of 30 ACL Anthology papers with license evidence recorded for each paper.
 - A sequential downloader that checks manifest records and PDF responses before saving files under `data/raw/acl_anthology/`.
 - pypdf is selected as the initial PDF parser; the comparison tool remains available to reproduce and extend the evaluation.
-- An initial pypdf adapter implemented to return extracted text with one-based page numbers and basic title/author metadata; focused validation is pending.
-- A pure text cleaner that normalizes line endings, horizontal whitespace, and repeated blank lines while retaining source page boundaries and line breaks.
+- A pypdf adapter that returns extracted text with one-based page numbers and basic title/author metadata; 4 unit tests pass, and it has read a local 13-page paper.
+- A pure text cleaner that normalizes line endings, horizontal whitespace, and repeated blank lines while retaining source page boundaries and line breaks; its 3 focused tests pass.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -106,7 +106,7 @@ The downloader spaces requests, validates each response, and skips PDFs that are
 
 ## Current work and next steps
 
-Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The pypdf adapter successfully read a local paper; the current cleaning pass handles whitespace while retaining page and line boundaries.
+Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 3 unit tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample.
 
 Not implemented yet: Markdown and plain-text parsers, repeated header/footer removal, dehyphenation, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 

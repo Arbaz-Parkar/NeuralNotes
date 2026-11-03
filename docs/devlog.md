@@ -29,4 +29,5 @@
 - Added the `DocumentParser` protocol, immutable parsed-document/page types, and a pypdf adapter that preserves one-based page numbers and basic title/author metadata.
 - Verified the adapter on `2020.emnlp-main.550`: title extracted, 13 pages, 56,093 characters.
 - Added the first pure cleaning pass for line endings, horizontal whitespace, and repeated blank lines; page boundaries, line breaks, and hyphenation are preserved.
-- Next: run the cleaning tests and quality checks, then apply the cleaner to a local paper before handling headers, footers, and line-end hyphenation.
+- Verified the cleaner: 3 unit tests passed, Ruff lint and format passed, and the sample paper remained 13 pages and 56,093 characters after cleaning.
+- Next: inspect repeated page headers and footers in the corpus before adding a rule to remove them.
