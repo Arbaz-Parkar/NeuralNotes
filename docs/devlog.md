@@ -26,4 +26,5 @@
 - Ran the pypdf versus pdfplumber comparison on five papers (84 pages): pypdf extracted 49,567 words in about 7.82 seconds; pdfplumber extracted 24,659 words in about 19.72 seconds. These one-run counts and timings do not determine quality; manual review is pending.
 - A screenshot review of the first paper shows pypdf's spacing is readable while pdfplumber's default output joins many words. Added a `pdfplumber` layout-mode variant to distinguish configuration from parser choice.
 - Selected pypdf for the initial PDF parser and recorded the limited evidence and trade-offs in ADR 003. The layout-mode result and human review of all five papers remain open follow-up evidence.
-- Next: implement the pypdf parser adapter while preserving page boundaries and source page numbers.
+- Added the `DocumentParser` protocol, immutable parsed-document/page types, and a pypdf adapter that preserves one-based page numbers and basic title/author metadata.
+- Next: run the parser unit tests and quality checks, then validate extraction against a local sample paper before implementing text cleaning.

@@ -19,3 +19,7 @@ class ResourceNotFoundError(NeuralNotesError):
 
 class ExternalServiceError(NeuralNotesError):
     """Raised when a required external service fails or is unavailable."""
+
+
+class DocumentParseError(NeuralNotesError):
+    """Raised when a document cannot be parsed into source text."""
