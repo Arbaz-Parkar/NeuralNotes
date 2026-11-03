@@ -221,6 +221,61 @@
       "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "license_evidence_url": "https://aclanthology.org/2026.findings-emnlp.1269/",
       "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2024.emnlp-industry.66",
+      "title": "Retrieval Augmented Generation or Long-Context LLMs? A Comprehensive Study and Hybrid Approach",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.emnlp-industry.66/",
+      "pdf_url": "https://aclanthology.org/2024.emnlp-industry.66.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.emnlp-industry.66/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2024.findings-acl.372",
+      "title": "Benchmarking Retrieval-Augmented Generation for Medicine",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.findings-acl.372/",
+      "pdf_url": "https://aclanthology.org/2024.findings-acl.372.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.findings-acl.372/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.gem-1.38",
+      "title": "Investigating the Robustness of Retrieval-Augmented Generation at the Query Level",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.gem-1.38/",
+      "pdf_url": "https://aclanthology.org/2025.gem-1.38.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.gem-1.38/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.acl-long.418",
+      "title": "RAGEval: Scenario Specific RAG Evaluation Dataset Generation Framework",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.acl-long.418/",
+      "pdf_url": "https://aclanthology.org/2025.acl-long.418.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.acl-long.418/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.emnlp-industry.54",
+      "title": "Benchmarking LLM Faithfulness in RAG with Evolving Leaderboards",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.emnlp-industry.54/",
+      "pdf_url": "https://aclanthology.org/2025.emnlp-industry.54.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.emnlp-industry.54/",
+      "license_verified_on": "2026-11-03"
     }
   ]
 }

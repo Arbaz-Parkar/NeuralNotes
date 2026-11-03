@@ -18,4 +18,5 @@
 ## 2026-11-03
 
 - Added five more license-checked ACL Anthology papers covering active retrieval, RAG best practices, source reliability, RAG reasoning, and robustness; the manifest now contains twenty records and no PDFs.
+- Added five additional license-checked papers on long-context comparison, medical RAG, query robustness, scenario-specific evaluation, and faithfulness; the manifest now contains twenty-five records, with no PDFs committed.
 - Next: continue building the 30–60 paper corpus before implementing the downloader.
