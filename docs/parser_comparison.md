@@ -44,9 +44,9 @@ The runner completed on all five papers with both parsers. This was one run on t
 - **pdfplumber:** 24,659 extracted words across the same 84 pages in about 19.72 seconds.
 - Both parsers returned the same page count for each paper. The large word-count difference needs inspection in the saved text outputs before it can be explained.
 
-No parser has been selected. Human scores for column order, equations, tables, and section flow are still pending.
+The initial implementation will use pypdf, as recorded in [ADR 003](adr/003-pdf-parser.md). This is a limited decision based on one visual spot-check and single-run counts/timings; human scores for all five papers, equations, and tables are still pending.
 
-A visual spot-check of the first sample showed readable word spacing in pypdf's output and many joined words in pdfplumber's default output. This may explain much of the word-count gap because the current word metric splits on whitespace. It is only one sample and one pdfplumber configuration, so the runner now also checks `layout=True` before a parser decision.
+A visual spot-check of the first sample showed readable word spacing in pypdf's output and many joined words in pdfplumber's default output. This may explain much of the word-count gap because the current word metric splits on whitespace. The runner also includes pdfplumber's `layout=True` mode as a separate configuration; its result is retained for future comparison but was not used as the basis for this initial choice.
 
 ## Run
 

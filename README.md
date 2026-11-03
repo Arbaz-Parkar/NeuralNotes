@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 3 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The first five-paper parser comparison ran; a visual spot-check found spacing problems in pdfplumber's default output, so its layout mode is being checked before parser selection. Parsing, chunking, embeddings, indexing, and question answering are not implemented yet.
+> **Project status — 3 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. pypdf is selected for the first PDF parser based on a limited five-paper comparison; parser integration, chunking, embeddings, indexing, and question answering are not implemented yet.
 
 ## What works today
 
@@ -10,7 +10,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - Local PostgreSQL 16 with pgvector 0.8.7 through Docker Compose.
 - A manifest of 30 ACL Anthology papers with license evidence recorded for each paper.
 - A sequential downloader that checks manifest records and PDF responses before saving files under `data/raw/acl_anthology/`.
-- A parser comparison runner for pypdf default, pdfplumber default, and pdfplumber layout extraction; review across the full five-paper sample is still pending.
+- pypdf is selected as the initial PDF parser; the comparison tool remains available to reproduce and extend the evaluation.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -104,7 +104,7 @@ The downloader spaces requests, validates each response, and skips PDFs that are
 
 ## Current work and next steps
 
-Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper suggests pdfplumber's default spacing is poor; the layout-mode variant is now included for a fairer follow-up. The parser choice remains open until the full sample is reviewed. See the [comparison plan and preliminary results](docs/parser_comparison.md).
+Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md).
 
 Not implemented yet: document parsing and cleaning, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
