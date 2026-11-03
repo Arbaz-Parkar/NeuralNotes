@@ -27,4 +27,6 @@
 - A screenshot review of the first paper shows pypdf's spacing is readable while pdfplumber's default output joins many words. Added a `pdfplumber` layout-mode variant to distinguish configuration from parser choice.
 - Selected pypdf for the initial PDF parser and recorded the limited evidence and trade-offs in ADR 003. The layout-mode result and human review of all five papers remain open follow-up evidence.
 - Added the `DocumentParser` protocol, immutable parsed-document/page types, and a pypdf adapter that preserves one-based page numbers and basic title/author metadata.
-- Next: run the parser unit tests and quality checks, then validate extraction against a local sample paper before implementing text cleaning.
+- Verified the adapter on `2020.emnlp-main.550`: title extracted, 13 pages, 56,093 characters.
+- Added the first pure cleaning pass for line endings, horizontal whitespace, and repeated blank lines; page boundaries, line breaks, and hyphenation are preserved.
+- Next: run the cleaning tests and quality checks, then apply the cleaner to a local paper before handling headers, footers, and line-end hyphenation.
