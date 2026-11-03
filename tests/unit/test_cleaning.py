@@ -2,7 +2,13 @@
 
 from pathlib import Path
 
-from neuralnotes.cleaning import clean_document, clean_page_text
+import pytest
+
+from neuralnotes.cleaning import (
+    clean_document,
+    clean_page_text,
+    find_repeated_margin_lines,
+)
 from neuralnotes.parsers.models import ParsedDocument, ParsedPage
 
 
@@ -40,3 +46,39 @@ def test_clean_document_preserves_pages_metadata_and_hyphenation() -> None:
         ParsedPage(page_number=2, text="Second page."),
     )
     assert document.pages[0].text == "retriev-\r\nal\t evidence  \n\n"
+
+
+def test_find_repeated_margin_lines_groups_varying_page_numbers() -> None:
+    document = ParsedDocument(
+        source_path=Path("paper.pdf"),
+        title=None,
+        author=None,
+        pages=(
+            ParsedPage(1, "Proceedings 2026\nBody one\nPage 1"),
+            ParsedPage(2, "Proceedings 2026\nBody two\nPage 2"),
+            ParsedPage(3, "Proceedings 2026\nBody three\nPage 3"),
+        ),
+    )
+
+    candidates = find_repeated_margin_lines(document, margin_line_count=1)
+    actual = [(item.location, item.text, item.page_numbers) for item in candidates]
+    expected = [
+        ("bottom", "Page 1", (1, 2, 3)),
+        ("top", "Proceedings 2026", (1, 2, 3)),
+    ]
+
+    assert actual == expected
+
+
+def test_find_repeated_margin_lines_validates_options() -> None:
+    document = ParsedDocument(
+        source_path=Path("paper.pdf"),
+        title=None,
+        author=None,
+        pages=(ParsedPage(1, "One"),),
+    )
+
+    with pytest.raises(ValueError, match="margin_line_count"):
+        find_repeated_margin_lines(document, margin_line_count=0)
+    with pytest.raises(ValueError, match="minimum_pages"):
+        find_repeated_margin_lines(document, minimum_pages=1)
