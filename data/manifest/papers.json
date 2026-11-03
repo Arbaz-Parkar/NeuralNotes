@@ -276,6 +276,61 @@
       "license_url": "https://creativecommons.org/licenses/by/4.0/",
       "license_evidence_url": "https://aclanthology.org/2025.emnlp-industry.54/",
       "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2024.emnlp-main.347",
+      "title": "Model Internals-based Answer Attribution for Trustworthy Retrieval-Augmented Generation",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.emnlp-main.347/",
+      "pdf_url": "https://aclanthology.org/2024.emnlp-main.347.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.emnlp-main.347/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.findings-naacl.55",
+      "title": "Ground Every Sentence: Improving Retrieval-Augmented LLMs with Interleaved Reference-Claim Generation",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.findings-naacl.55/",
+      "pdf_url": "https://aclanthology.org/2025.findings-naacl.55.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.findings-naacl.55/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2024.konvens-main.6",
+      "title": "Evaluating and Fine-Tuning Retrieval-Augmented Language Models to Generate Text with Accurate Citations",
+      "year": 2024,
+      "landing_page_url": "https://aclanthology.org/2024.konvens-main.6/",
+      "pdf_url": "https://aclanthology.org/2024.konvens-main.6.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2024.konvens-main.6/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2025.acl-long.301",
+      "title": "HoH: A Dynamic Benchmark for Evaluating the Impact of Outdated Information on Retrieval-Augmented Generation",
+      "year": 2025,
+      "landing_page_url": "https://aclanthology.org/2025.acl-long.301/",
+      "pdf_url": "https://aclanthology.org/2025.acl-long.301.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2025.acl-long.301/",
+      "license_verified_on": "2026-11-03"
+    },
+    {
+      "anthology_id": "2026.findings-emnlp.2222",
+      "title": "The Bottleneck Is Retrieval, Not Reading: Diagnosing Evidence-Based Generation with RAG for Long Context Question Answering",
+      "year": 2026,
+      "landing_page_url": "https://aclanthology.org/2026.findings-emnlp.2222/",
+      "pdf_url": "https://aclanthology.org/2026.findings-emnlp.2222.pdf",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://aclanthology.org/2026.findings-emnlp.2222/",
+      "license_verified_on": "2026-11-03"
     }
   ]
 }
