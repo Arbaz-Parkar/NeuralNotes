@@ -49,4 +49,5 @@
 - Checked pages 1–3 and 35–36 of the 36-page paper: printed page numbers were removed while the last lines of article text remained.
 - Committed and pushed the cleanup as `3c86d4b` (`feat: remove verified sequential page footers`).
 - Added a standard-library plain-text adapter that decodes UTF-8 and treats each file as one source page while preserving line endings; its focused tests and validation are pending.
-- Next: validate the plain-text parser adapter.
+- Added a Markdown parser that preserves the source text as one page and extracts the first level-one heading outside fenced code blocks as the title. Focused tests and validation are pending.
+- Next: validate the Markdown parser and update the parser progress notes with the results.
