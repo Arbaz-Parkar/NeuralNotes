@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass
+from math import ceil
 from typing import Literal
 
 from neuralnotes.parsers.models import ParsedDocument, ParsedPage
@@ -36,9 +37,42 @@ def clean_page_text(text: str) -> str:
 
 
 def clean_document(document: ParsedDocument) -> ParsedDocument:
-    """Return a cleaned copy while preserving document metadata and page ids."""
+    """Clean page text and remove verified sequential numeric page footers."""
     pages = tuple(
         ParsedPage(page_number=page.page_number, text=clean_page_text(page.text))
+        for page in document.pages
+    )
+    cleaned_document = ParsedDocument(
+        source_path=document.source_path,
+        title=document.title,
+        author=document.author,
+        pages=pages,
+    )
+    return _remove_sequential_page_numbers(cleaned_document)
+
+
+def _remove_sequential_page_numbers(document: ParsedDocument) -> ParsedDocument:
+    """Remove numeric final lines only when they form a document-wide sequence."""
+    page_offsets: dict[int, int] = {}
+    for page in document.pages:
+        lines = page.text.splitlines()
+        if lines and lines[-1].isascii() and lines[-1].isdecimal():
+            page_offsets[page.page_number] = int(lines[-1]) - page.page_number
+
+    minimum_pages = max(3, ceil(document.page_count * 0.8))
+    offsets = set(page_offsets.values())
+    if len(page_offsets) < minimum_pages or len(offsets) != 1:
+        return document
+
+    pages = tuple(
+        ParsedPage(
+            page_number=page.page_number,
+            text=(
+                "\n".join(page.text.splitlines()[:-1])
+                if page.page_number in page_offsets
+                else page.text
+            ),
+        )
         for page in document.pages
     )
     return ParsedDocument(

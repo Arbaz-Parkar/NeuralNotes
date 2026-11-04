@@ -43,4 +43,7 @@
 - Updated the audit to skip numeric-only margin lines and added a regression test; sequential page-number cleanup remains separate.
 - Verified the update: 6 cleaning tests passed, Ruff lint and format checks passed, and the corpus audit wrote 81 candidates, down from 113 in the first run.
 - The pypdf fontTools advisory appeared again during the audit; processing completed and no text encoding problem has been confirmed.
-- Next: review the remaining candidate rows before implementing any header/footer removal.
+- Inspected pages 21–25 of the source-reliability paper. The repeated top lines are multi-page table headings and the bottom captions are table content, so they must be preserved.
+- Added a conservative cleanup rule for numeric-only final lines: remove them only when their values follow one consistent sequence across at least 80% of pages and at least three pages.
+- Added tests for a title page followed by sequential proceedings page numbers and for preserving inconsistent numeric lines. Validation is pending.
+- Next: run the cleaning tests, Ruff checks, and a corpus sample to verify the page-number rule.

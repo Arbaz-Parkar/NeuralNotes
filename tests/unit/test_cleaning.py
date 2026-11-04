@@ -48,6 +48,51 @@ def test_clean_document_preserves_pages_metadata_and_hyphenation() -> None:
     assert document.pages[0].text == "retriev-\r\nal\t evidence  \n\n"
 
 
+def test_clean_document_removes_sequential_numeric_page_footers() -> None:
+    document = ParsedDocument(
+        source_path=Path("paper.pdf"),
+        title="Example paper",
+        author=None,
+        pages=(
+            ParsedPage(1, "Title page"),
+            ParsedPage(2, "Body page two\n47579"),
+            ParsedPage(3, "Body page three\n47580"),
+            ParsedPage(4, "Body page four\n47581"),
+            ParsedPage(5, "Body page five\n47582"),
+        ),
+    )
+
+    cleaned = clean_document(document)
+
+    assert cleaned.page_count == 5
+    assert cleaned.pages == (
+        ParsedPage(1, "Title page"),
+        ParsedPage(2, "Body page two"),
+        ParsedPage(3, "Body page three"),
+        ParsedPage(4, "Body page four"),
+        ParsedPage(5, "Body page five"),
+    )
+
+
+def test_clean_document_preserves_nonsequential_numeric_final_lines() -> None:
+    document = ParsedDocument(
+        source_path=Path("paper.pdf"),
+        title=None,
+        author=None,
+        pages=(
+            ParsedPage(1, "Body one\n47578"),
+            ParsedPage(2, "Body two\n47579"),
+            ParsedPage(3, "Body three\n47580"),
+            ParsedPage(4, "Body four\n47584"),
+            ParsedPage(5, "Body five\n47582"),
+        ),
+    )
+
+    cleaned = clean_document(document)
+
+    assert cleaned.pages == document.pages
+
+
 def test_find_repeated_margin_lines_groups_varying_page_numbers() -> None:
     document = ParsedDocument(
         source_path=Path("paper.pdf"),

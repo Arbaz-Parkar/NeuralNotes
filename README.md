@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 4 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, six cleaning and margin-audit tests pass, and the latest corpus audit produced 81 candidates for manual review.
+> **Project status — 4 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, and the corpus audit produced 81 candidates for manual review. Conservative page-number cleanup is awaiting validation.
 
 ## What works today
 
@@ -12,8 +12,8 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A sequential downloader that checks manifest records and PDF responses before saving files under `data/raw/acl_anthology/`.
 - pypdf is selected as the initial PDF parser; the comparison tool remains available to reproduce and extend the evaluation.
 - A pypdf adapter that returns extracted text with one-based page numbers and basic title/author metadata; 4 unit tests pass, and it has read a local 13-page paper.
-- A pure text cleaner that normalizes line endings, horizontal whitespace, and repeated blank lines while retaining source page boundaries and line breaks; its 5 focused tests pass.
-- A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. No text is removed automatically.
+- A pure text cleaner that normalizes whitespace while retaining page boundaries and line breaks; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages.
+- A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -117,7 +117,7 @@ It writes candidate repeated top and bottom lines to the ignored `data/processed
 
 ## Current work and next steps
 
-Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines, passes 6 focused tests, and produced 81 candidates on the latest corpus run. Sequential page-number cleanup remains a separate follow-up.
+Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup is now covered by focused tests; validation against the corpus is pending.
 
 Not implemented yet: Markdown and plain-text parsers, repeated header/footer removal, dehyphenation, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
