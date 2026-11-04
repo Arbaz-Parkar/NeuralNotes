@@ -51,4 +51,6 @@
 - Added a standard-library plain-text adapter that decodes UTF-8 and treats each file as one source page while preserving line endings; its focused tests and validation are pending.
 - Added a Markdown parser that preserves the source text as one page and extracts the first level-one heading outside fenced code blocks as the title. Focused tests and validation are pending.
 - Added cleanup for explicit soft hyphens: a soft hyphen before a line break is removed along with the break, while hard hyphens remain unchanged. A focused test is pending.
-- Next: run the cleaning and parser tests, then update the progress notes with their results.
+- Scanned the 30-paper corpus for hard-hyphen line breaks and found 8,469 occurrences. The sample contains both true word wraps and valid compounds, so no blanket hard-hyphen removal rule was selected.
+- Checked dictionary-based options: wordfreq's frequency data is a snapshot through about 2021, while Pyphen bundles dictionaries under multiple licenses. No new lexical dependency was added.
+- Next: validate the pending parser and soft-hyphen tests, then start the fixed-size chunker with hard hyphens preserved.

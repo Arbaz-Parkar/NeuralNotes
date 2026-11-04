@@ -119,6 +119,8 @@ It writes candidate repeated top and bottom lines to the ignored `data/processed
 
 ## Current work and next steps
 
+The corpus scan found 8,469 hard-hyphen line-break candidates. The sample includes word wraps such as `us- / ing` and legitimate compounds such as `dual- / encoder`; hard hyphens therefore remain unchanged until a reliable lexical check is available.
+
 Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text.
 
 Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
