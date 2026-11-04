@@ -66,3 +66,7 @@
 - The Windows environment reported `torch.cuda.is_available() == False`, so the tokenizer check used CPU. GPU acceleration is not required for the adapter, and the embedding implementation can use CPU for now.
 - Ruff found two line-length issues in the adapter. The fixes are applied; lint and format checks need to be rerun.
 - Next: rerun Ruff and format, then implement the sentence-transformer embedding adapter.
+- Added an `EmbeddingModel` protocol and a lazy Sentence Transformers adapter for document batches and query vectors. It returns normalized vectors and checks their count, dimension, finite values, and unit length. Fake-model unit tests are in place; focused validation is pending.
+- Next: run the embedding adapter tests and Ruff, then make a real model call on a few sample texts before starting database storage.
+- Verified the real adapter on CPU: one document vector and one query vector each had 384 dimensions and a norm of 1.0. Sentence Transformers emitted a deprecation warning for the prior dimension accessor; updated the adapter to the documented `get_embedding_dimension()` method.
+- The 14 embedding adapter tests passed. Ruff found one line-length/format issue; the fix is applied and lint/format checks need a rerun.
