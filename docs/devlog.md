@@ -31,4 +31,12 @@
 - Added the first pure cleaning pass for line endings, horizontal whitespace, and repeated blank lines; page boundaries, line breaks, and hyphenation are preserved.
 - Verified the cleaner: 3 unit tests passed, Ruff lint and format passed, and the sample paper remained 13 pages and 56,093 characters after cleaning.
 - Added a local audit command that reports repeated top and bottom page lines to an ignored CSV; it does not remove text. Added unit cases for repeated page numbers and margin-line options.
-- Next: run the new audit tests and corpus report, then review the candidates before implementing any header/footer removal.
+- Ran the cleaning tests: 5 passed. The corpus audit completed and wrote 113 candidate rows to the ignored CSV; manual classification is still needed before any removal rule is considered.
+- pypdf printed a fontTools advisory while processing a CFF Type1 font; the audit completed, and no encoding problem has been confirmed.
+- Next: review the candidates before implementing any header/footer removal.
+
+## 2026-11-04
+
+- Updated the README with the verified test and audit results: 5 cleaning tests passed and the corpus run produced 113 candidate rows.
+- Fixed the Ruff formatting findings in the cleaning module and its tests; lint and format checks still need to be rerun.
+- Next: rerun Ruff, commit the audit implementation and documentation, then review candidate rows.
