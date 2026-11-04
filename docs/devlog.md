@@ -53,4 +53,5 @@
 - Added cleanup for explicit soft hyphens: a soft hyphen before a line break is removed along with the break, while hard hyphens remain unchanged. A focused test is pending.
 - Scanned the 30-paper corpus for hard-hyphen line breaks and found 8,469 occurrences. The sample contains both true word wraps and valid compounds, so no blanket hard-hyphen removal rule was selected.
 - Checked dictionary-based options: wordfreq's frequency data is a snapshot through about 2021, while Pyphen bundles dictionaries under multiple licenses. No new lexical dependency was added.
-- Next: validate the pending parser and soft-hyphen tests, then start the fixed-size chunker with hard hyphens preserved.
+- Added an immutable `Chunk` model with stable content-and-position ids, source offsets, page number, token count, strategy, and optional section path. Validation is pending.
+- Next: validate the current parser/cleaning changes and chunk model, then implement the fixed-size strategy.
