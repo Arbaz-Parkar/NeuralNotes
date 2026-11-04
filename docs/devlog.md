@@ -39,4 +39,8 @@
 
 - Updated the README with the verified test and audit results: 5 cleaning tests passed and the corpus run produced 113 candidate rows.
 - Fixed the Ruff formatting findings in the cleaning module and its tests; lint and format checks still need to be rerun.
-- Next: rerun Ruff, commit the audit implementation and documentation, then review candidate rows.
+- Reviewed the highest-frequency rows and confirmed the first report grouped sequential printed page numbers (47578 onward) as one repeated numeric line.
+- Updated the audit to skip numeric-only margin lines and added a regression test; sequential page-number cleanup remains separate.
+- Verified the update: 6 cleaning tests passed, Ruff lint and format checks passed, and the corpus audit wrote 81 candidates, down from 113 in the first run.
+- The pypdf fontTools advisory appeared again during the audit; processing completed and no text encoding problem has been confirmed.
+- Next: review the remaining candidate rows before implementing any header/footer removal.

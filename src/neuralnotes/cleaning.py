@@ -74,6 +74,8 @@ def find_repeated_margin_lines(
         }
         for location, margin_lines in margins.items():
             for line in margin_lines:
+                if line.isdecimal():
+                    continue
                 normalized = re.sub(r"\d+", "<number>", line.casefold())
                 key = (location, normalized)
                 if key not in matches:

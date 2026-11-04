@@ -70,6 +70,21 @@ def test_find_repeated_margin_lines_groups_varying_page_numbers() -> None:
     assert actual == expected
 
 
+def test_find_repeated_margin_lines_ignores_numeric_only_lines() -> None:
+    document = ParsedDocument(
+        source_path=Path("paper.pdf"),
+        title=None,
+        author=None,
+        pages=(
+            ParsedPage(1, "Body one\n47578"),
+            ParsedPage(2, "Body two\n47579"),
+            ParsedPage(3, "Body three\n47580"),
+        ),
+    )
+
+    assert find_repeated_margin_lines(document, margin_line_count=1) == ()
+
+
 def test_find_repeated_margin_lines_validates_options() -> None:
     document = ParsedDocument(
         source_path=Path("paper.pdf"),
