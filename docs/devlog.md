@@ -50,4 +50,5 @@
 - Committed and pushed the cleanup as `3c86d4b` (`feat: remove verified sequential page footers`).
 - Added a standard-library plain-text adapter that decodes UTF-8 and treats each file as one source page while preserving line endings; its focused tests and validation are pending.
 - Added a Markdown parser that preserves the source text as one page and extracts the first level-one heading outside fenced code blocks as the title. Focused tests and validation are pending.
-- Next: validate the Markdown parser and update the parser progress notes with the results.
+- Added cleanup for explicit soft hyphens: a soft hyphen before a line break is removed along with the break, while hard hyphens remain unchanged. A focused test is pending.
+- Next: run the cleaning and parser tests, then update the progress notes with their results.

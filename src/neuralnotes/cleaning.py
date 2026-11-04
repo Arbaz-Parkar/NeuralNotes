@@ -18,8 +18,9 @@ class RepeatedMarginLine:
 
 
 def clean_page_text(text: str) -> str:
-    """Normalize line endings, horizontal spacing, and repeated blank lines."""
+    """Normalize spacing and remove explicit soft hyphen line wraps."""
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    normalized = re.sub(r"\u00ad[ \t]*\n", "", normalized).replace("\u00ad", "")
     cleaned_lines: list[str] = []
 
     for raw_line in normalized.split("\n"):

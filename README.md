@@ -14,7 +14,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A pypdf adapter that returns extracted text with one-based page numbers and basic title/author metadata; 4 unit tests pass, and it has read a local 13-page paper.
 - A plain-text parser adapter that reads UTF-8 files as one page and preserves the source text and line endings; focused validation is pending.
 - A Markdown parser adapter that preserves the source as one page and extracts the first level-one heading outside fenced code blocks as the title; focused validation is pending.
-- A pure text cleaner that normalizes whitespace while retaining page boundaries and line breaks; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages. Eight focused tests pass.
+- A pure text cleaner that normalizes whitespace, removes explicit soft hyphens across wrapped words, and retains page boundaries; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages. The existing 8 focused tests passed; the new soft-hyphen test awaits validation.
 - A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
@@ -121,7 +121,7 @@ It writes candidate repeated top and bottom lines to the ignored `data/processed
 
 Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text.
 
-Not implemented yet: general repeated header/footer removal, dehyphenation, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
+Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
 As the project progresses, this README will be updated with verified features, setup changes, real screenshots, measured evaluation results, limitations, and lessons from experiments. Progress and decisions are tracked in the [development log](docs/devlog.md).
 

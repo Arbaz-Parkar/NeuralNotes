@@ -23,6 +23,12 @@ def test_clean_page_text_handles_empty_or_whitespace_input() -> None:
     assert clean_page_text(" \t\r\n\n") == ""
 
 
+def test_clean_page_text_joins_explicit_soft_hyphen_line_breaks() -> None:
+    source = "inter\u00ad\r\nnational and co\u00adoperate"
+
+    assert clean_page_text(source) == "international and cooperate"
+
+
 def test_clean_document_preserves_pages_metadata_and_hyphenation() -> None:
     document = ParsedDocument(
         source_path=Path("paper.pdf"),
