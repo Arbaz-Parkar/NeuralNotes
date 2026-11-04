@@ -53,5 +53,7 @@
 - Added cleanup for explicit soft hyphens: a soft hyphen before a line break is removed along with the break, while hard hyphens remain unchanged. A focused test is pending.
 - Scanned the 30-paper corpus for hard-hyphen line breaks and found 8,469 occurrences. The sample contains both true word wraps and valid compounds, so no blanket hard-hyphen removal rule was selected.
 - Checked dictionary-based options: wordfreq's frequency data is a snapshot through about 2021, while Pyphen bundles dictionaries under multiple licenses. No new lexical dependency was added.
-- Added an immutable `Chunk` model with stable content-and-position ids, source offsets, page number, token count, strategy, and optional section path. Validation is pending.
-- Next: validate the current parser/cleaning changes and chunk model, then implement the fixed-size strategy.
+- Added an immutable `Chunk` model with stable content-and-position ids, source offsets, page number, token count, strategy, and optional section path.
+- Added a fixed-size chunker with configurable overlap, page-local token spans, and stable ids. It accepts an injected offset tokenizer so token counts can match the selected model later; no production tokenizer is wired yet.
+- Ran 36 unit tests across chunk models, chunking, cleaning, and parser adapters; all passed. Ruff found one import-order issue and two formatting differences. The fixes are applied; Ruff and format checks must be rerun.
+- Next: rerun Ruff and format, then select the production tokenizer with the embedding model.

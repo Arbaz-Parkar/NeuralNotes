@@ -7,6 +7,18 @@ from typing import Literal
 ChunkStrategy = Literal["fixed_size", "recursive", "sentence_window"]
 
 
+@dataclass(frozen=True, slots=True)
+class TokenSpan:
+    """A zero-based, end-exclusive character range for one tokenizer token."""
+
+    start_char: int
+    end_char: int
+
+    def __post_init__(self) -> None:
+        if self.start_char < 0 or self.end_char <= self.start_char:
+            raise ValueError("Token offsets must define a non-empty character range.")
+
+
 def make_chunk_id(
     *,
     document_id: str,
