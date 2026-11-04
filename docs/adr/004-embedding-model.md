@@ -15,7 +15,7 @@ Use provisional fixed-size chunk defaults of 100 tokens with 20 tokens of overla
 
 ## Consequences
 
-- The tokenizer adapter must use a fast tokenizer and offset mappings so chunks retain character positions. It will remain lazily loaded behind the existing tokenizer protocol.
+- `HuggingFaceOffsetTokenizer` uses a fast tokenizer and offset mappings so chunks retain character positions. Loading is lazy through `from_pretrained`; importing the chunking package does not require Transformers.
 - The model is English-focused and may not be suitable for multilingual documents.
 - Sentence Transformers and PyTorch increase installation size, so they stay optional. CPU inference is the portability baseline; CUDA acceleration depends on the installed PyTorch build and local driver.
 - This decision does not claim the model is the most accurate, fastest, or best choice for the project. Phase 5 will compare at least two models on the development set and confirm the selected configuration on the held-out test set.

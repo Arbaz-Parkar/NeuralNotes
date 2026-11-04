@@ -17,7 +17,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A pure text cleaner that normalizes whitespace, removes explicit soft hyphens across wrapped words, and retains page boundaries; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages. Its 9 focused tests passed in the latest 36-test run.
 - A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
 - An immutable chunk data model and fixed-size chunker with overlap, page boundaries, character offsets, and stable ids. Its provisional default is 100 tokens with 20 tokens of overlap, based on the selected embedding model's sequence-length guidance; this has not been tuned. The tokenizer is injected through an offset-based interface, and no production tokenizer is wired yet.
-- The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Install its pinned optional dependency with `pip install -e ".[dev,embeddings]"`; the model and tokenizer adapters are still pending. This is a starting point for later measured comparison, not a proven best model.
+- The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Its fast tokenizer adapter passed 10 focused unit tests and returned character spans from a real tokenizer call. The embedding adapter is still pending. Install the pinned optional dependency with `pip install -e ".[dev,embeddings]"`. This is a starting point for later measured comparison, not a proven best model.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -93,14 +93,14 @@ Open `http://127.0.0.1:8000/health` to check the health endpoint and `http://127
 
 ### Install the optional embedding dependency
 
-The local embedding stack is optional because it adds PyTorch and other model dependencies. To prepare for the upcoming tokenizer and embedding adapter, install the pinned extra:
+The local embedding stack is optional because it adds PyTorch and other model dependencies. Install the pinned extra to load the tokenizer and prepare for the embedding adapter:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,embeddings]"
 .\.venv\Scripts\python.exe -c "import torch, sentence_transformers; print('sentence-transformers', sentence_transformers.__version__); print('CUDA available:', torch.cuda.is_available())"
 ```
 
-The selected model is `sentence-transformers/all-MiniLM-L6-v2`. See [ADR 004](docs/adr/004-embedding-model.md) for the choice and its limits. A CPU installation is sufficient for development; GPU acceleration depends on installing a compatible CUDA-enabled PyTorch build.
+The selected model is `sentence-transformers/all-MiniLM-L6-v2`. See [ADR 004](docs/adr/004-embedding-model.md) for the choice and its limits. The current Windows environment reports CUDA unavailable, and the tokenizer check ran on CPU. GPU acceleration depends on installing a compatible CUDA-enabled PyTorch build.
 
 ### Download the paper corpus
 

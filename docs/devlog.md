@@ -60,4 +60,9 @@
 - Selected `sentence-transformers/all-MiniLM-L6-v2` as the first local English embedding baseline and pinned `sentence-transformers==6.2.0` in a separate optional dependency extra. This is an initial baseline, not a measured winner.
 - Set the fixed-size chunker's provisional defaults to 100 tokens with 20-token overlap, and added a test for those defaults. The size is chosen to leave headroom under the model's 128-token training sequence; tuning belongs in the later evaluation phase.
 - Added ADR 004 and README setup instructions for the optional embedding dependency. The model tokenizer and embedding adapter are not implemented yet; CPU/GPU availability still needs to be checked in the user's Windows environment.
-- Next: install the optional extra, confirm the package version and CUDA availability, then implement the fast offset tokenizer adapter.
+- Next: install the optional extra if needed, confirm the package version and CUDA availability, then validate a real tokenizer call.
+- Added `HuggingFaceOffsetTokenizer`, which lazily loads the selected model's fast tokenizer and returns checked character spans without adding special tokens or truncating input. Its unit tests use a fake tokenizer and do not download model files; all 10 passed.
+- Ran 18 focused tokenizer and chunker tests; all passed. The real tokenizer loaded with Sentence Transformers 6.2.0 and returned character spans.
+- The Windows environment reported `torch.cuda.is_available() == False`, so the tokenizer check used CPU. GPU acceleration is not required for the adapter, and the embedding implementation can use CPU for now.
+- Ruff found two line-length issues in the adapter. The fixes are applied; lint and format checks need to be rerun.
+- Next: rerun Ruff and format, then implement the sentence-transformer embedding adapter.
