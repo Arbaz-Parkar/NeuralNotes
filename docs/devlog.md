@@ -48,4 +48,5 @@
 - Added tests for a title page followed by sequential proceedings page numbers and for preserving inconsistent numeric lines. All 8 cleaning tests and both Ruff checks passed.
 - Checked pages 1–3 and 35–36 of the 36-page paper: printed page numbers were removed while the last lines of article text remained.
 - Committed and pushed the cleanup as `3c86d4b` (`feat: remove verified sequential page footers`).
-- Next: add a plain-text parser adapter, then add the Markdown adapter as a separate step.
+- Added a standard-library plain-text adapter that decodes UTF-8 and treats each file as one source page while preserving line endings; its focused tests and validation are pending.
+- Next: validate the plain-text parser adapter.

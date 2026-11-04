@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 4 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, and the corpus audit produced 81 candidates for manual review. Conservative page-number cleanup passed focused tests and a sample-paper check.
+> **Project status — 4 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. The pypdf adapter has read a local paper, and a plain-text parser adapter has been added for validation. The corpus audit produced 81 candidates for manual review.
 
 ## What works today
 
@@ -12,6 +12,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A sequential downloader that checks manifest records and PDF responses before saving files under `data/raw/acl_anthology/`.
 - pypdf is selected as the initial PDF parser; the comparison tool remains available to reproduce and extend the evaluation.
 - A pypdf adapter that returns extracted text with one-based page numbers and basic title/author metadata; 4 unit tests pass, and it has read a local 13-page paper.
+- A plain-text parser adapter that reads UTF-8 files as one page and preserves the source text and line endings; focused validation is pending.
 - A pure text cleaner that normalizes whitespace while retaining page boundaries and line breaks; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages. Eight focused tests pass.
 - A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
@@ -119,7 +120,7 @@ It writes candidate repeated top and bottom lines to the ignored `data/processed
 
 Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text.
 
-Not implemented yet: Markdown and plain-text parsers, repeated header/footer removal, dehyphenation, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
+Not implemented yet: a Markdown parser, general repeated header/footer removal, dehyphenation, chunking, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
 As the project progresses, this README will be updated with verified features, setup changes, real screenshots, measured evaluation results, limitations, and lessons from experiments. Progress and decisions are tracked in the [development log](docs/devlog.md).
 
