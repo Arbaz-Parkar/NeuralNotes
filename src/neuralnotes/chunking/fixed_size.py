@@ -12,8 +12,8 @@ class FixedSizeChunker:
         self,
         tokenizer: TokenSpanTokenizer,
         *,
-        chunk_size: int = 400,
-        overlap: int = 60,
+        chunk_size: int = 100,
+        overlap: int = 20,
     ) -> None:
         if chunk_size < 1:
             raise ValueError("chunk_size must be at least 1.")

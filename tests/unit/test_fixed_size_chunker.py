@@ -57,6 +57,16 @@ def test_fixed_size_chunker_without_overlap_covers_page_text() -> None:
     assert [chunk.token_count for chunk in chunks] == [2, 2, 1]
 
 
+def test_fixed_size_chunker_uses_initial_default_window_and_overlap() -> None:
+    text = " ".join(f"token{index}" for index in range(121))
+    chunks = FixedSizeChunker(WhitespaceTokenizer()).chunk(
+        _document(text), document_id="doc-1"
+    )
+
+    assert [chunk.token_count for chunk in chunks] == [100, 41]
+    assert chunks[0].text.split()[-20:] == chunks[1].text.split()[:20]
+
+
 @pytest.mark.parametrize(
     ("chunk_size", "overlap"),
     [(0, 0), (3, -1), (3, 3)],

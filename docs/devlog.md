@@ -57,3 +57,7 @@
 - Added a fixed-size chunker with configurable overlap, page-local token spans, and stable ids. It accepts an injected offset tokenizer so token counts can match the selected model later; no production tokenizer is wired yet.
 - Ran 36 unit tests across chunk models, chunking, cleaning, and parser adapters; all passed. Ruff found one import-order issue and two formatting differences. The fixes are applied; Ruff and format checks must be rerun.
 - Next: rerun Ruff and format, then select the production tokenizer with the embedding model.
+- Selected `sentence-transformers/all-MiniLM-L6-v2` as the first local English embedding baseline and pinned `sentence-transformers==6.2.0` in a separate optional dependency extra. This is an initial baseline, not a measured winner.
+- Set the fixed-size chunker's provisional defaults to 100 tokens with 20-token overlap, and added a test for those defaults. The size is chosen to leave headroom under the model's 128-token training sequence; tuning belongs in the later evaluation phase.
+- Added ADR 004 and README setup instructions for the optional embedding dependency. The model tokenizer and embedding adapter are not implemented yet; CPU/GPU availability still needs to be checked in the user's Windows environment.
+- Next: install the optional extra, confirm the package version and CUDA availability, then implement the fast offset tokenizer adapter.
