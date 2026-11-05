@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 5 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, fixed-size chunking, and tokenizer and embedding adapters are implemented. An in-memory preparation pipeline and initial workspace/document migration are in place; pipeline validation, PostgreSQL migration verification, and chunk persistence remain pending.
+> **Project status — 5 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, fixed-size chunking, and tokenizer and embedding adapters are implemented. An in-memory preparation pipeline and workspace/document/chunk schema migrations are in place; pipeline validation and PostgreSQL migration verification remain pending.
 
 ## What works today
 
@@ -19,7 +19,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - An immutable chunk data model and fixed-size chunker with overlap, page boundaries, character offsets, and stable ids. Its provisional default is 100 tokens with 20 tokens of overlap, based on the selected embedding model's sequence-length guidance; this has not been tuned. `HuggingFaceOffsetTokenizer` supplies fast-tokenizer character offsets.
 - The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Its fast tokenizer adapter passed 10 focused unit tests and returned character spans from a real tokenizer call. The lazy Sentence Transformers adapter passed 14 focused unit tests; a real CPU smoke check returned 384-dimensional document and query vectors with unit norm. Install the pinned optional dependency with `pip install -e ".[dev,embeddings]"`. This is a starting point for later measured comparison, not a proven best model.
 - A document-preparation pipeline composes parsing, page-preserving cleaning, fixed-size chunking, and batched embeddings in memory. It returns source-aware embedded chunks but does not save them to PostgreSQL; its focused tests are pending.
-- SQLAlchemy models and an Alembic migration define workspace-scoped documents with source hashes and license evidence. The migration has not yet been run against local PostgreSQL; document persistence and chunk tables are pending. See [ADR 005](docs/adr/005-database-connectivity.md) and [ADR 006](docs/adr/006-document-schema.md).
+- SQLAlchemy models and Alembic migrations define workspace-scoped documents and chunks. Chunk rows retain page and character provenance, strategy and model metadata, and 384-dimensional vectors with a cosine HNSW index. The migrations have not yet been run against local PostgreSQL. See [ADR 005](docs/adr/005-database-connectivity.md), [ADR 006](docs/adr/006-document-schema.md), and [ADR 007](docs/adr/007-pgvector-chunk-storage.md).
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.

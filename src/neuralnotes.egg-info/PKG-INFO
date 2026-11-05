@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: neuralnotes
+Version: 0.1.0
+Summary: A traceable, evaluated workspace for studying and researching technical documents.
+Requires-Python: <3.13,>=3.11
+Requires-Dist: alembic==1.20.1
+Requires-Dist: fastapi==0.162.0
+Requires-Dist: pgvector==0.5.1
+Requires-Dist: psycopg[binary]==3.3.8
+Requires-Dist: pydantic==2.14.2
+Requires-Dist: pydantic-settings==2.16.2
+Requires-Dist: pypdf==6.21.4
+Requires-Dist: sqlalchemy==2.1.8
+Requires-Dist: uvicorn==0.54.0
+Provides-Extra: dev
+Requires-Dist: httpx==0.28.1; extra == "dev"
+Requires-Dist: pre-commit==4.7.0; extra == "dev"
+Requires-Dist: pytest==9.2.0; extra == "dev"
+Requires-Dist: pytest-cov==7.1.0; extra == "dev"
+Requires-Dist: ruff==0.17.3; extra == "dev"
+Provides-Extra: parser-eval
+Requires-Dist: pdfplumber==0.11.10; extra == "parser-eval"
+Provides-Extra: embeddings
+Requires-Dist: sentence-transformers==6.2.0; extra == "embeddings"

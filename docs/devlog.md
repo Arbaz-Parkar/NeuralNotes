@@ -82,4 +82,8 @@
 - Next: install the database dependencies, run settings/database tests and Ruff, and verify the connection against the local pgvector container.
 - Added SQLAlchemy `Workspace` and `Document` models with workspace-scoped keys, source hashes, and the ACL license evidence fields.
 - Added Alembic 1.20.1 configuration and the initial migration for the workspace and document tables. Migration execution against the local PostgreSQL container is pending.
-- Next: install Alembic, run the schema metadata tests and Ruff, apply the migration locally, and inspect the created tables.
+- Added `Chunk` persistence with workspace/document ownership, source offsets, page and strategy metadata, and a 384-dimensional pgvector embedding.
+- Added the pinned `pgvector` 0.5.1 Python adapter dependency and an Alembic migration that enables the vector extension and creates a cosine HNSW index. The database migration has not yet been run locally.
+- Recorded the vector storage decision and the fixed model dimension in ADR 007; updated the README status and architecture references.
+- Validation found a SQLAlchemy helper name collision in the model class, then exposed one remaining old helper reference in the document status default and an import-order issue. The migration stopped before the chunk migration, leaving the already-created workspace and document tables intact. Updated both server defaults to use the explicit `sql_text` alias and followed Ruff's import layout.
+- Next: rerun the model tests and Ruff, apply the chunk migration locally, and inspect the chunk table and cosine HNSW index.
