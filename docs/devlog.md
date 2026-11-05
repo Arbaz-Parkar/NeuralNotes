@@ -80,3 +80,6 @@
 - Added the database URL to environment-backed settings and `.env.example`, with SQLAlchemy 2.1.8 and Psycopg 3.3.8 as runtime dependencies.
 - Added a lazy SQLAlchemy engine factory and a `SELECT 1` connectivity helper. SQLite unit coverage uses an in-memory database; the local Docker PostgreSQL connection check is pending.
 - Next: install the database dependencies, run settings/database tests and Ruff, and verify the connection against the local pgvector container.
+- Added SQLAlchemy `Workspace` and `Document` models with workspace-scoped keys, source hashes, and the ACL license evidence fields.
+- Added Alembic 1.20.1 configuration and the initial migration for the workspace and document tables. Migration execution against the local PostgreSQL container is pending.
+- Next: install Alembic, run the schema metadata tests and Ruff, apply the migration locally, and inspect the created tables.
