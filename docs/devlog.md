@@ -87,3 +87,6 @@
 - Recorded the vector storage decision and the fixed model dimension in ADR 007; updated the README status and architecture references.
 - Validation found a SQLAlchemy helper name collision in the model class, then exposed one remaining old helper reference in the document status default and an import-order issue. The migration stopped before the chunk migration, leaving the already-created workspace and document tables intact. Updated both server defaults to use the explicit `sql_text` alias and followed Ruff's import layout.
 - Next: rerun the model tests and Ruff, apply the chunk migration locally, and inspect the chunk table and cosine HNSW index.
+- Added a reusable SQLAlchemy session factory and a persistence adapter that hashes source files, saves document/license metadata with embedded chunks, validates vector dimensions, and replaces chunks on repeated imports within the caller's transaction.
+- Added SQLite-backed tests for document/chunk persistence, repeat-import behavior, embedding dimension checks, and transactional sessions. Focused validation is pending.
+- Next: run the database and ingestion persistence tests with Ruff, then verify a prepared local paper can be written to PostgreSQL.

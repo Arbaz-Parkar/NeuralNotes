@@ -2,6 +2,7 @@
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from neuralnotes.settings import Settings
 
@@ -10,6 +11,11 @@ def create_database_engine(settings: Settings | None = None) -> Engine:
     """Create an engine from settings without opening a connection yet."""
     configuration = settings or Settings()
     return create_engine(configuration.database_url, pool_pre_ping=True)
+
+
+def create_database_session_factory(engine: Engine) -> sessionmaker[Session]:
+    """Create sessions bound to an engine for caller-managed transactions."""
+    return sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def check_database_connection(engine: Engine) -> None:
