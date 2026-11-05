@@ -3,11 +3,12 @@
 from neuralnotes.chunking.fixed_size import FixedSizeChunker
 from neuralnotes.chunking.huggingface import HuggingFaceOffsetTokenizer
 from neuralnotes.chunking.models import Chunk, ChunkStrategy, TokenSpan, make_chunk_id
-from neuralnotes.chunking.protocols import TokenSpanTokenizer
+from neuralnotes.chunking.protocols import Chunker, TokenSpanTokenizer
 
 __all__ = [
     "Chunk",
     "ChunkStrategy",
+    "Chunker",
     "FixedSizeChunker",
     "HuggingFaceOffsetTokenizer",
     "TokenSpan",

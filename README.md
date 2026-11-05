@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 4 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF and plain-text adapters are present; the Markdown parser has been added for validation. The corpus audit produced 81 candidates for manual review. The initial embedding baseline is selected, but its tokenizer and embedding adapter are not wired yet.
+> **Project status — 5 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, fixed-size chunking, and the initial tokenizer and embedding adapters are implemented. An in-memory preparation pipeline now connects these steps; database persistence and pipeline validation remain pending.
 
 ## What works today
 
@@ -16,8 +16,9 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A Markdown parser adapter that preserves the source as one page and extracts the first level-one heading outside fenced code blocks as the title; its tests passed in the latest 36-test focused run.
 - A pure text cleaner that normalizes whitespace, removes explicit soft hyphens across wrapped words, and retains page boundaries; it removes numeric footer lines only when they form a consistent sequence across at least 80% of pages and at least three pages. Its 9 focused tests passed in the latest 36-test run.
 - A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
-- An immutable chunk data model and fixed-size chunker with overlap, page boundaries, character offsets, and stable ids. Its provisional default is 100 tokens with 20 tokens of overlap, based on the selected embedding model's sequence-length guidance; this has not been tuned. The tokenizer is injected through an offset-based interface, and no production tokenizer is wired yet.
+- An immutable chunk data model and fixed-size chunker with overlap, page boundaries, character offsets, and stable ids. Its provisional default is 100 tokens with 20 tokens of overlap, based on the selected embedding model's sequence-length guidance; this has not been tuned. `HuggingFaceOffsetTokenizer` supplies fast-tokenizer character offsets.
 - The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Its fast tokenizer adapter passed 10 focused unit tests and returned character spans from a real tokenizer call. The lazy Sentence Transformers adapter passed 14 focused unit tests; a real CPU smoke check returned 384-dimensional document and query vectors with unit norm. Install the pinned optional dependency with `pip install -e ".[dev,embeddings]"`. This is a starting point for later measured comparison, not a proven best model.
+- A document-preparation pipeline composes parsing, page-preserving cleaning, fixed-size chunking, and batched embeddings in memory. It returns source-aware embedded chunks but does not save them to PostgreSQL; its focused tests are pending.
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -93,7 +94,7 @@ Open `http://127.0.0.1:8000/health` to check the health endpoint and `http://127
 
 ### Install the optional embedding dependency
 
-The local embedding stack is optional because it adds PyTorch and other model dependencies. Install the pinned extra to load the tokenizer and prepare for the embedding adapter:
+The local embedding stack is optional because it adds PyTorch and other model dependencies. Install the pinned extra to load the tokenizer and create embeddings:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -e ".[dev,embeddings]"
@@ -136,7 +137,7 @@ The corpus scan found 8,469 hard-hyphen line-break candidates. The sample includ
 
 Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text. The initial embedding baseline is `all-MiniLM-L6-v2`, with a provisional 100-token chunk and 20-token overlap; no embedding quality or speed comparison has been run.
 
-Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, recursive and sentence-window chunkers, embeddings, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
+Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, recursive and sentence-window chunkers, embedding caching, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
 As the project progresses, this README will be updated with verified features, setup changes, real screenshots, measured evaluation results, limitations, and lessons from experiments. Progress and decisions are tracked in the [development log](docs/devlog.md).
 

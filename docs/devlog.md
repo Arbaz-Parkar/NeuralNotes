@@ -70,3 +70,10 @@
 - Next: run the embedding adapter tests and Ruff, then make a real model call on a few sample texts before starting database storage.
 - Verified the real adapter on CPU: one document vector and one query vector each had 384 dimensions and a norm of 1.0. Sentence Transformers emitted a deprecation warning for the prior dimension accessor; updated the adapter to the documented `get_embedding_dimension()` method.
 - The 14 embedding adapter tests passed. Ruff found one line-length/format issue; the fix is applied and lint/format checks need a rerun.
+
+## 2026-11-05
+
+- Added a `Chunker` protocol so ingestion can depend on the chunking interface rather than a specific strategy.
+- Added `DocumentIngestionPipeline.prepare`, an in-memory path that parses one source file, applies the existing cleaner, generates page-aware chunks, embeds the chunk texts, and returns metadata with each chunk/vector pair.
+- The preparation result is deliberately not persisted yet; a focused fake-adapter test suite is pending before connecting this path to PostgreSQL.
+- Next: run the pipeline tests and Ruff, then exercise the pipeline on one local paper before designing database persistence.

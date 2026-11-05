@@ -3,7 +3,20 @@
 from collections.abc import Sequence
 from typing import Protocol
 
-from neuralnotes.chunking.models import TokenSpan
+from neuralnotes.chunking.models import Chunk, TokenSpan
+from neuralnotes.parsers.models import ParsedDocument
+
+
+class Chunker(Protocol):
+    """Split a parsed document into ordered source-aware chunks."""
+
+    def chunk(
+        self,
+        document: ParsedDocument,
+        *,
+        document_id: str,
+    ) -> tuple[Chunk, ...]:
+        """Return chunks tied to the document's source positions."""
 
 
 class TokenSpanTokenizer(Protocol):
