@@ -77,3 +77,6 @@
 - Added `DocumentIngestionPipeline.prepare`, an in-memory path that parses one source file, applies the existing cleaner, generates page-aware chunks, embeds the chunk texts, and returns metadata with each chunk/vector pair.
 - The preparation result is deliberately not persisted yet; a focused fake-adapter test suite is pending before connecting this path to PostgreSQL.
 - Next: run the pipeline tests and Ruff, then exercise the pipeline on one local paper before designing database persistence.
+- Added the database URL to environment-backed settings and `.env.example`, with SQLAlchemy 2.1.8 and Psycopg 3.3.8 as runtime dependencies.
+- Added a lazy SQLAlchemy engine factory and a `SELECT 1` connectivity helper. SQLite unit coverage uses an in-memory database; the local Docker PostgreSQL connection check is pending.
+- Next: install the database dependencies, run settings/database tests and Ruff, and verify the connection against the local pgvector container.

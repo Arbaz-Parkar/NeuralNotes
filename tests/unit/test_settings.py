@@ -13,6 +13,7 @@ def _clear_settings_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         "NEURALNOTES_APP_NAME",
         "NEURALNOTES_ENVIRONMENT",
         "NEURALNOTES_LOG_LEVEL",
+        "NEURALNOTES_DATABASE_URL",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -27,6 +28,9 @@ def test_settings_have_development_defaults(
     assert settings.app_name == "NeuralNotes"
     assert settings.environment == "development"
     assert settings.log_level == "INFO"
+    assert settings.database_url == (
+        "postgresql+psycopg://neuralnotes:neuralnotes-local@127.0.0.1:5432/neuralnotes"
+    )
 
 
 def test_prefixed_environment_variables_override_defaults(
@@ -36,12 +40,19 @@ def test_prefixed_environment_variables_override_defaults(
     monkeypatch.setenv("NEURALNOTES_APP_NAME", "Notes Test")
     monkeypatch.setenv("NEURALNOTES_ENVIRONMENT", "test")
     monkeypatch.setenv("NEURALNOTES_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv(
+        "NEURALNOTES_DATABASE_URL",
+        "postgresql+psycopg://user:secret@localhost:5432/test_db",
+    )
 
     settings = Settings(_env_file=None)
 
     assert settings.app_name == "Notes Test"
     assert settings.environment == "test"
     assert settings.log_level == "DEBUG"
+    assert settings.database_url == (
+        "postgresql+psycopg://user:secret@localhost:5432/test_db"
+    )
 
 
 def test_invalid_environment_value_is_rejected(
