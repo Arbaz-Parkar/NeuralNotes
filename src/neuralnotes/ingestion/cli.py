@@ -10,8 +10,11 @@ from datetime import date
 from pathlib import Path
 from uuid import UUID
 
+from sqlalchemy.orm import Session, sessionmaker
+
 from neuralnotes.chunking import FixedSizeChunker, HuggingFaceOffsetTokenizer
 from neuralnotes.database import (
+    check_database_connection,
     create_database_engine,
     create_database_session_factory,
 )
@@ -24,7 +27,7 @@ from neuralnotes.downloader import (
     load_manifest,
 )
 from neuralnotes.embeddings import CachedEmbeddingModel, SentenceTransformerEmbedder
-from neuralnotes.ingestion.pipeline import DocumentIngestionPipeline
+from neuralnotes.ingestion.pipeline import DocumentIngestionPipeline, PreparedDocument
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.parsers import PypdfDocumentParser
 from neuralnotes.settings import Settings
@@ -45,6 +48,22 @@ class IngestionResult:
     chunk_count: int
 
 
+@dataclass(frozen=True, slots=True)
+class IngestionFailure:
+    """Paper identifier and error text for one failed batch item."""
+
+    document_id: str
+    error: str
+
+
+@dataclass(frozen=True, slots=True)
+class BatchIngestionResult:
+    """Successful and failed results from a manifest ingestion run."""
+
+    ingested: tuple[IngestionResult, ...]
+    failures: tuple[IngestionFailure, ...]
+
+
 def _build_pipeline() -> DocumentIngestionPipeline:
     """Create the initial local PDF, tokenizer, chunker, and embedding stack."""
     tokenizer = HuggingFaceOffsetTokenizer.from_pretrained()
@@ -60,6 +79,43 @@ def _find_paper(papers: Sequence[Paper], paper_id: str) -> Paper:
         if paper.anthology_id == paper_id:
             return paper
     raise ValueError(f"Paper id is not present in the verified manifest: {paper_id}")
+
+
+def _save_prepared_document(
+    session_factory: sessionmaker[Session],
+    paper: Paper,
+    prepared: PreparedDocument,
+    *,
+    workspace_id: UUID,
+    workspace_name: str,
+) -> IngestionResult:
+    with session_factory.begin() as session:
+        workspace = session.get(Workspace, workspace_id)
+        if workspace is None:
+            session.add(Workspace(id=workspace_id, name=workspace_name))
+            session.flush()
+
+        document = persist_prepared_document(
+            session,
+            prepared,
+            workspace_id=workspace_id,
+            mime_type="application/pdf",
+            source_url=paper.landing_page_url,
+            pdf_url=paper.pdf_url,
+            year=paper.year,
+            license_name=paper.license,
+            license_url=paper.license_url,
+            license_evidence_url=paper.license_evidence_url,
+            license_verified_on=date.fromisoformat(paper.license_verified_on),
+        )
+
+    return IngestionResult(
+        document_id=document.id,
+        workspace_id=workspace_id,
+        title=document.title,
+        page_count=prepared.page_count,
+        chunk_count=len(prepared.chunks),
+    )
 
 
 def ingest_paper(
@@ -88,44 +144,116 @@ def ingest_paper(
     engine = create_database_engine(settings)
     try:
         session_factory = create_database_session_factory(engine)
-        with session_factory.begin() as session:
-            workspace = session.get(Workspace, workspace_id)
-            if workspace is None:
-                session.add(Workspace(id=workspace_id, name=workspace_name))
-                session.flush()
-
-            persist_prepared_document(
-                session,
-                prepared,
-                workspace_id=workspace_id,
-                mime_type="application/pdf",
-                source_url=paper.landing_page_url,
-                pdf_url=paper.pdf_url,
-                year=paper.year,
-                license_name=paper.license,
-                license_url=paper.license_url,
-                license_evidence_url=paper.license_evidence_url,
-                license_verified_on=date.fromisoformat(paper.license_verified_on),
-            )
+        result = _save_prepared_document(
+            session_factory,
+            paper,
+            prepared,
+            workspace_id=workspace_id,
+            workspace_name=workspace_name,
+        )
     finally:
         engine.dispose()
 
-    return IngestionResult(
-        document_id=paper.anthology_id,
-        workspace_id=workspace_id,
-        title=prepared.title,
-        page_count=prepared.page_count,
-        chunk_count=len(prepared.chunks),
+    return result
+
+
+def ingest_manifest(
+    *,
+    paper_ids: Sequence[str] | None = None,
+    manifest_path: Path = DEFAULT_MANIFEST,
+    pdf_dir: Path = DEFAULT_OUTPUT_DIR,
+    workspace_id: UUID = DEFAULT_WORKSPACE_ID,
+    workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    settings: Settings | None = None,
+) -> BatchIngestionResult:
+    """Process selected or all manifest papers one at a time.
+
+    The parser, embedding model, SQLite cache, engine, and session factory are
+    reused for the run. Each paper is prepared in memory and persisted in its
+    own transaction so one bad source does not roll back completed imports.
+    """
+    if not workspace_name.strip():
+        raise ValueError("workspace_name must not be empty.")
+
+    papers = load_manifest(manifest_path)
+    if paper_ids is None:
+        selected_papers = iter(papers)
+    else:
+        requested_ids = tuple(paper_ids)
+        if not requested_ids:
+            raise ValueError("At least one paper id must be selected.")
+        if len(requested_ids) != len(set(requested_ids)):
+            raise ValueError("Paper ids must not contain duplicates.")
+        manifest_by_id = {paper.anthology_id: paper for paper in papers}
+        unknown_ids = tuple(
+            paper_id for paper_id in requested_ids if paper_id not in manifest_by_id
+        )
+        if unknown_ids:
+            raise ValueError(
+                "Paper ids are not present in the verified manifest: "
+                f"{', '.join(unknown_ids)}"
+            )
+        selected_papers = (manifest_by_id[paper_id] for paper_id in requested_ids)
+
+    engine = create_database_engine(settings)
+    ingested: list[IngestionResult] = []
+    failures: list[IngestionFailure] = []
+    try:
+        check_database_connection(engine)
+        pipeline = _build_pipeline()
+        session_factory = create_database_session_factory(engine)
+
+        for paper in selected_papers:
+            try:
+                source_path = pdf_dir / f"{paper.anthology_id}.pdf"
+                if not source_path.is_file():
+                    raise FileNotFoundError(
+                        f"Local PDF not found: {source_path}. "
+                        "Run neuralnotes.downloader first."
+                    )
+                prepared = pipeline.prepare(source_path, document_id=paper.anthology_id)
+                result = _save_prepared_document(
+                    session_factory,
+                    paper,
+                    prepared,
+                    workspace_id=workspace_id,
+                    workspace_name=workspace_name,
+                )
+            except Exception as exc:
+                failures.append(
+                    IngestionFailure(document_id=paper.anthology_id, error=str(exc))
+                )
+                LOGGER.exception("Ingestion failed for paper %s", paper.anthology_id)
+            else:
+                ingested.append(result)
+                LOGGER.info(
+                    "Ingested %s: %d pages, %d chunks",
+                    result.document_id,
+                    result.page_count,
+                    result.chunk_count,
+                )
+    finally:
+        engine.dispose()
+
+    return BatchIngestionResult(
+        ingested=tuple(ingested),
+        failures=tuple(failures),
     )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run one-paper ingestion from PowerShell or another command shell."""
+    """Run one-paper or manifest-batch ingestion from the command line."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
+    selection = parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument(
         "--paper-id",
-        required=True,
-        help="ACL Anthology ID from data/manifest/papers.json.",
+        action="append",
+        help="Verified ACL Anthology ID; repeat to ingest selected papers.",
+    )
+    selection.add_argument(
+        "--all",
+        action="store_true",
+        help="Ingest every paper in the verified manifest.",
     )
     parser.add_argument(
         "--manifest",
@@ -157,8 +285,25 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     configure_logging()
     try:
+        if args.all or len(args.paper_id) > 1:
+            result = ingest_manifest(
+                paper_ids=None if args.all else args.paper_id,
+                manifest_path=args.manifest,
+                pdf_dir=args.pdf_dir,
+                workspace_id=args.workspace_id,
+                workspace_name=args.workspace_name,
+            )
+            chunk_count = sum(item.chunk_count for item in result.ingested)
+            LOGGER.info(
+                "Finished batch ingestion: %d succeeded, %d failed, %d chunks",
+                len(result.ingested),
+                len(result.failures),
+                chunk_count,
+            )
+            return 1 if result.failures else 0
+
         result = ingest_paper(
-            args.paper_id,
+            args.paper_id[0],
             manifest_path=args.manifest,
             pdf_dir=args.pdf_dir,
             workspace_id=args.workspace_id,

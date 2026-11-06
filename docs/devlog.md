@@ -107,5 +107,11 @@
 - Added tests for neighbor expansion, token limits, long-sentence splitting, common abbreviations, page boundaries, stable ids, and invalid options. The focused tests and Ruff checks passed, and the change was committed as `b85129d` (`feat: add sentence-window chunking`).
 - Added a SQLite embedding cache keyed by model name, embedding role, and SHA-256 of input text. Document and query embeddings use separate keys so model-specific encoding routes are not mixed.
 - Wrapped the CLI's sentence-transformer adapter with the cache. Cache files are written under the existing Git-ignored `data/cache/` directory; raw text is not stored.
-- Added tests for duplicate inputs, order preservation, cross-process reuse, model separation, document/query separation, and corrupt entries. Focused validation is pending.
-- Next: run embedding-cache, sentence-window, and related adapter tests with Ruff.
+- Added tests for duplicate inputs, order preservation, cross-process reuse, model separation, document/query separation, and corrupt entries. The cache change was committed as `90198cf` (`feat: cache embeddings by content hash`).
+- Added batch manifest ingestion with a single reused parser/embedding pipeline, cache, and database engine. Papers are processed sequentially and committed separately; a failed paper is reported without rolling back earlier imports.
+- Extended the CLI to accept repeated `--paper-id` arguments or `--all`, and documented the batch workflow.
+- Added tests for ordered multi-paper ingestion, continued processing after a missing PDF, per-document database results, invalid selections, and batch failure exit codes. The first test run exposed identical fixture bytes for distinct papers; after correcting that fixture, all 19 focused tests passed, Ruff lint passed, and all 60 files passed the format check.
+- The first batch test run exposed a fixture issue: two sample PDFs had identical bytes, so the intended workspace duplicate-source guard rejected the second import. Updated the fixture to use distinct bytes and applied Ruff's import/format fixes.
+- Smoke-tested two manifest papers against local PostgreSQL: 2020.emnlp-main.550 was stored as 13 pages and 181 chunks; 2024.emnlp-main.845 as 19 pages and 243 chunks. The batch completed with 2 successes, 0 failures, and 424 chunks.
+- Sentence Transformers selected CPU. Its 1,026-token warning came from offset-tokenizing a complete page; the embedding pipeline processed bounded chunks and completed successfully.
+- Next: commit batch manifest ingestion, then begin the BM25 retrieval index.
