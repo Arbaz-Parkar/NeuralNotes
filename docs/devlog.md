@@ -102,5 +102,7 @@
 - Reran the single-paper CLI step's remaining Ruff check after removing the unused import and committed it; local PostgreSQL contains the verified 13-page, 181-chunk result.
 - Added a recursive chunker that prefers paragraph, line, sentence, and whitespace boundaries while keeping token limits, overlap, page provenance, and stable ids.
 - Added focused tests for structural boundaries, token-limit fallback, overlap, page separation, deterministic ids, and option validation. All 25 focused tests passed and Ruff lint passed.
-- Ruff format check identified one test line to reformat. Applied the formatting change; the format check must be rerun.
-- Next: rerun Ruff format check, then commit the recursive chunker.
+- Ruff format check identified one test line to reformat. Applied the fix, reran formatting checks successfully, and committed the chunker as `6a92486` (`feat: add paragraph-aware recursive chunking`).
+- Added `SentenceWindowChunker` to form sentence-centered chunks with neighboring sentence context, a token cap, and a deterministic punctuation-based boundary heuristic.
+- Added tests for neighbor expansion, token limits, long-sentence splitting, common abbreviations, page boundaries, stable ids, and invalid options. Validation is pending.
+- Next: run the sentence-window and existing chunker tests with Ruff.

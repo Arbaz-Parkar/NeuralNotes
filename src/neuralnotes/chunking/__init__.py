@@ -5,6 +5,7 @@ from neuralnotes.chunking.huggingface import HuggingFaceOffsetTokenizer
 from neuralnotes.chunking.models import Chunk, ChunkStrategy, TokenSpan, make_chunk_id
 from neuralnotes.chunking.protocols import Chunker, TokenSpanTokenizer
 from neuralnotes.chunking.recursive import RecursiveChunker
+from neuralnotes.chunking.sentence_window import SentenceWindowChunker
 
 __all__ = [
     "Chunk",
@@ -13,6 +14,7 @@ __all__ = [
     "FixedSizeChunker",
     "HuggingFaceOffsetTokenizer",
     "RecursiveChunker",
+    "SentenceWindowChunker",
     "TokenSpan",
     "TokenSpanTokenizer",
     "make_chunk_id",
