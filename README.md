@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 5 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, fixed-size chunking, and tokenizer and embedding adapters are implemented. An in-memory preparation pipeline and workspace/document/chunk schema migrations are in place; pipeline validation and PostgreSQL migration verification remain pending.
+> **Project status — 6 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, fixed-size chunking, tokenizer and embedding adapters, and workspace-scoped persistence are implemented. The single-paper CLI was exercised against local PostgreSQL: the 13-page DPR paper was stored with 181 chunks. Twelve focused tests passed; Ruff lint is being rerun after removing one unused import.
 
 ## What works today
 
@@ -18,8 +18,9 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A local audit tool that reports recurring lines near page tops and bottoms for manual review; the latest corpus run produced 81 candidates after numeric-only page numbers were excluded. The audit does not remove text.
 - An immutable chunk data model and fixed-size chunker with overlap, page boundaries, character offsets, and stable ids. Its provisional default is 100 tokens with 20 tokens of overlap, based on the selected embedding model's sequence-length guidance; this has not been tuned. `HuggingFaceOffsetTokenizer` supplies fast-tokenizer character offsets.
 - The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Its fast tokenizer adapter passed 10 focused unit tests and returned character spans from a real tokenizer call. The lazy Sentence Transformers adapter passed 14 focused unit tests; a real CPU smoke check returned 384-dimensional document and query vectors with unit norm. Install the pinned optional dependency with `pip install -e ".[dev,embeddings]"`. This is a starting point for later measured comparison, not a proven best model.
-- A document-preparation pipeline composes parsing, page-preserving cleaning, fixed-size chunking, and batched embeddings in memory. A SQLAlchemy persistence adapter stores its metadata and chunks under one workspace-scoped transaction, computes a SHA-256 source hash, and replaces prior chunks on repeat imports; focused validation is pending.
-- SQLAlchemy models and Alembic migrations define workspace-scoped documents and chunks. Chunk rows retain page and character provenance, strategy and model metadata, and 384-dimensional vectors with a cosine HNSW index. The migrations have not yet been run against local PostgreSQL. See [ADR 005](docs/adr/005-database-connectivity.md), [ADR 006](docs/adr/006-document-schema.md), and [ADR 007](docs/adr/007-pgvector-chunk-storage.md).
+- A document-preparation pipeline composes parsing, page-preserving cleaning, fixed-size chunking, and batched embeddings in memory. A SQLAlchemy persistence adapter stores its metadata and chunks under one workspace-scoped transaction, computes a SHA-256 source hash, and replaces prior chunks on repeat imports. Persistence and pipeline unit tests passed in the latest 12-test focused run.
+- A single-paper ingestion CLI selects a license-checked manifest record, reads its already-downloaded PDF, runs the local parser/chunker/embedder pipeline, creates a default workspace if needed, and stores document/license metadata and chunks in one transaction. It uses the `all-MiniLM-L6-v2` model on CPU in the current environment. Its smoke check stored the 13-page DPR paper as 181 chunks.
+- SQLAlchemy models and Alembic migrations define workspace-scoped documents and chunks. Chunk rows retain page and character provenance, strategy and model metadata, and 384-dimensional vectors with a cosine HNSW index. The local PostgreSQL migration was applied for the ingestion smoke check, and a query confirmed the document is `ready` with 181 chunks. See [ADR 005](docs/adr/005-database-connectivity.md), [ADR 006](docs/adr/006-document-schema.md), and [ADR 007](docs/adr/007-pgvector-chunk-storage.md).
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
 The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
@@ -116,6 +117,16 @@ In another PowerShell terminal from the repository directory:
 
 The downloader spaces requests, validates each response, and skips PDFs that are already present and valid. Downloaded papers are not committed to Git. The manifest is at [`data/manifest/papers.json`](data/manifest/papers.json); corpus sourcing and license checks are described in [ADR 002](docs/adr/002-corpus-source.md).
 
+### Ingest one paper
+
+After installing the embedding extra, starting PostgreSQL, applying the migrations, and downloading the corpus, ingest one paper by its ACL Anthology ID:
+
+```powershell
+.\.venv\Scripts\python.exe -m neuralnotes.ingestion.cli --paper-id 2020.emnlp-main.550
+```
+
+The command creates a default local workspace on its first run. Use `--workspace-id` and `--workspace-name` to target a different workspace. The first run may load model files from Hugging Face; subsequent runs use the local model cache. Re-ingesting the same source in the same workspace replaces its existing chunks.
+
 ### Audit repeated page margins
 
 After downloading the corpus, run the local audit:
@@ -140,7 +151,7 @@ The corpus scan found 8,469 hard-hyphen line-break candidates. The sample includ
 
 Phase 2 is building the ingestion path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text. The initial embedding baseline is `all-MiniLM-L6-v2`, with a provisional 100-token chunk and 20-token overlap; no embedding quality or speed comparison has been run.
 
-Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, recursive and sentence-window chunkers, embedding caching, database persistence, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
+Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, recursive and sentence-window chunkers, embedding caching, batch corpus ingestion, API ingestion, BM25 or vector retrieval, answer generation, evaluations, web UI, and deployment. There is no demo recording or measured RAG result yet.
 
 As the project progresses, this README will be updated with verified features, setup changes, real screenshots, measured evaluation results, limitations, and lessons from experiments. Progress and decisions are tracked in the [development log](docs/devlog.md).
 

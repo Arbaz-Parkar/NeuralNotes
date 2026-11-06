@@ -90,3 +90,13 @@
 - Added a reusable SQLAlchemy session factory and a persistence adapter that hashes source files, saves document/license metadata with embedded chunks, validates vector dimensions, and replaces chunks on repeated imports within the caller's transaction.
 - Added SQLite-backed tests for document/chunk persistence, repeat-import behavior, embedding dimension checks, and transactional sessions. Focused validation is pending.
 - Next: run the database and ingestion persistence tests with Ruff, then verify a prepared local paper can be written to PostgreSQL.
+
+## 2026-11-06
+
+- Added a one-paper ingestion command that looks up an ACL ID in the verified manifest, processes its local PDF with the selected parser, tokenizer, chunker, and embedder, creates a default workspace when needed, and persists metadata and vectors in a single transaction.
+- Added CLI tests for persistence metadata, workspace creation, missing manifest IDs, missing local PDFs, and command failure reporting. The focused CLI, persistence, pipeline, and database tests passed: 12 total.
+- Updated the README with the command, local prerequisites, default workspace behavior, and the remaining Phase 2 work.
+- Applied the Alembic migrations and ingested `2020.emnlp-main.550` into the default local workspace. PostgreSQL reported the document as `ready` with 181 chunks across 13 pages.
+- Ruff found one unused `func` import in the CLI test file. Removed it; rerun lint and formatting checks before committing.
+- Sentence Transformers logged that CPU was selected. The 1,026-token warning came from tokenizing a full PDF page to compute character offsets; the pipeline embeds bounded chunks instead.
+- Next: rerun Ruff lint and format, then commit the single-paper ingestion CLI.
