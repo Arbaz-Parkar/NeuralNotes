@@ -104,5 +104,8 @@
 - Added focused tests for structural boundaries, token-limit fallback, overlap, page separation, deterministic ids, and option validation. All 25 focused tests passed and Ruff lint passed.
 - Ruff format check identified one test line to reformat. Applied the fix, reran formatting checks successfully, and committed the chunker as `6a92486` (`feat: add paragraph-aware recursive chunking`).
 - Added `SentenceWindowChunker` to form sentence-centered chunks with neighboring sentence context, a token cap, and a deterministic punctuation-based boundary heuristic.
-- Added tests for neighbor expansion, token limits, long-sentence splitting, common abbreviations, page boundaries, stable ids, and invalid options. Validation is pending.
-- Next: run the sentence-window and existing chunker tests with Ruff.
+- Added tests for neighbor expansion, token limits, long-sentence splitting, common abbreviations, page boundaries, stable ids, and invalid options. The focused tests and Ruff checks passed, and the change was committed as `b85129d` (`feat: add sentence-window chunking`).
+- Added a SQLite embedding cache keyed by model name, embedding role, and SHA-256 of input text. Document and query embeddings use separate keys so model-specific encoding routes are not mixed.
+- Wrapped the CLI's sentence-transformer adapter with the cache. Cache files are written under the existing Git-ignored `data/cache/` directory; raw text is not stored.
+- Added tests for duplicate inputs, order preservation, cross-process reuse, model separation, document/query separation, and corrupt entries. Focused validation is pending.
+- Next: run embedding-cache, sentence-window, and related adapter tests with Ruff.

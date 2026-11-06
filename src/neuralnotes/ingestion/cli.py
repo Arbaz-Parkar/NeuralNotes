@@ -23,7 +23,7 @@ from neuralnotes.downloader import (
     Paper,
     load_manifest,
 )
-from neuralnotes.embeddings import SentenceTransformerEmbedder
+from neuralnotes.embeddings import CachedEmbeddingModel, SentenceTransformerEmbedder
 from neuralnotes.ingestion.pipeline import DocumentIngestionPipeline
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.parsers import PypdfDocumentParser
@@ -51,7 +51,7 @@ def _build_pipeline() -> DocumentIngestionPipeline:
     return DocumentIngestionPipeline(
         parser=PypdfDocumentParser(),
         chunker=FixedSizeChunker(tokenizer),
-        embedder=SentenceTransformerEmbedder(),
+        embedder=CachedEmbeddingModel(SentenceTransformerEmbedder()),
     )
 
 
