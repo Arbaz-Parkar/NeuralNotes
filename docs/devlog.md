@@ -115,3 +115,11 @@
 - Smoke-tested two manifest papers against local PostgreSQL: 2020.emnlp-main.550 was stored as 13 pages and 181 chunks; 2024.emnlp-main.845 as 19 pages and 243 chunks. The batch completed with 2 successes, 0 failures, and 424 chunks.
 - Sentence Transformers selected CPU. Its 1,026-token warning came from offset-tokenizing a complete page; the embedding pipeline processed bounded chunks and completed successfully.
 - Next: commit batch manifest ingestion, then begin the BM25 retrieval index.
+
+## 2026-11-07
+
+- Confirmed batch manifest ingestion was committed as `3be62d5` and pushed.
+- Added an in-memory BM25 index over source-aware chunks. It builds term-frequency postings, applies the BM25 length and inverse-document-frequency formula, and uses a min-heap for deterministic top-k results.
+- Added focused unit tests for the scoring formula, case-insensitive tokenization, tie ordering, top-k limits, and invalid input. Validation is pending.
+- Added `docs/complexity_notes.md` with the BM25 formula, complexity estimates, limitations, and the workspace-scoping requirement.
+- Next: run the BM25 tests and Ruff checks, then connect the index to workspace-scoped persisted chunks.
