@@ -77,7 +77,7 @@ def test_ingest_manifest_reuses_pipeline_and_commits_each_paper(
 
     pipeline = FakePipeline()
     monkeypatch.setattr(cli, "load_manifest", lambda _path: list(papers))
-    monkeypatch.setattr(cli, "_build_pipeline", lambda: pipeline)
+    monkeypatch.setattr(cli, "_build_pipeline", lambda _strategy: pipeline)
 
     database_path = tmp_path / "batch.sqlite3"
     database_url = f"sqlite+pysqlite:///{database_path.as_posix()}"
@@ -91,6 +91,7 @@ def test_ingest_manifest_reuses_pipeline_and_commits_each_paper(
         pdf_dir=pdf_dir,
         workspace_id=WORKSPACE_ID,
         workspace_name="Batch workspace",
+        chunking_strategy="recursive",
         settings=Settings(database_url=database_url),
     )
 
@@ -162,5 +163,6 @@ def test_cli_returns_failure_when_a_batch_item_fails(
     monkeypatch.setattr(cli, "ingest_manifest", fail_batch)
     monkeypatch.setattr(cli, "configure_logging", lambda: None)
 
-    assert cli.main(["--all"]) == 1
+    assert cli.main(["--all", "--chunking-strategy", "sentence_window"]) == 1
     assert captured["paper_ids"] is None
+    assert captured["chunking_strategy"] == "sentence_window"

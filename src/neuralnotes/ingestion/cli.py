@@ -12,7 +12,15 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from neuralnotes.chunking import FixedSizeChunker, HuggingFaceOffsetTokenizer
+from neuralnotes.chunking import (
+    Chunker,
+    ChunkStrategy,
+    FixedSizeChunker,
+    HuggingFaceOffsetTokenizer,
+    RecursiveChunker,
+    SentenceWindowChunker,
+    TokenSpanTokenizer,
+)
 from neuralnotes.database import (
     check_database_connection,
     create_database_engine,
@@ -35,6 +43,11 @@ from neuralnotes.settings import Settings
 LOGGER = logging.getLogger(__name__)
 DEFAULT_WORKSPACE_ID = UUID("11111111-1111-4111-8111-111111111111")
 DEFAULT_WORKSPACE_NAME = "NeuralNotes local"
+CHUNKING_STRATEGIES: tuple[ChunkStrategy, ...] = (
+    "fixed_size",
+    "recursive",
+    "sentence_window",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,12 +77,28 @@ class BatchIngestionResult:
     failures: tuple[IngestionFailure, ...]
 
 
-def _build_pipeline() -> DocumentIngestionPipeline:
-    """Create the initial local PDF, tokenizer, chunker, and embedding stack."""
+def _build_chunker(
+    tokenizer: TokenSpanTokenizer,
+    strategy: ChunkStrategy,
+) -> Chunker:
+    """Create the selected page-aware chunking strategy."""
+    if strategy == "fixed_size":
+        return FixedSizeChunker(tokenizer)
+    if strategy == "recursive":
+        return RecursiveChunker(tokenizer)
+    if strategy == "sentence_window":
+        return SentenceWindowChunker(tokenizer)
+    raise ValueError(f"Unsupported chunking strategy: {strategy}.")
+
+
+def _build_pipeline(
+    chunking_strategy: ChunkStrategy = "fixed_size",
+) -> DocumentIngestionPipeline:
+    """Create the local PDF, tokenizer, selected chunker, and embedder stack."""
     tokenizer = HuggingFaceOffsetTokenizer.from_pretrained()
     return DocumentIngestionPipeline(
         parser=PypdfDocumentParser(),
-        chunker=FixedSizeChunker(tokenizer),
+        chunker=_build_chunker(tokenizer, chunking_strategy),
         embedder=CachedEmbeddingModel(SentenceTransformerEmbedder()),
     )
 
@@ -125,6 +154,7 @@ def ingest_paper(
     pdf_dir: Path = DEFAULT_OUTPUT_DIR,
     workspace_id: UUID = DEFAULT_WORKSPACE_ID,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    chunking_strategy: ChunkStrategy = "fixed_size",
     settings: Settings | None = None,
 ) -> IngestionResult:
     """Prepare and persist one paper selected from the verified manifest."""
@@ -140,7 +170,9 @@ def ingest_paper(
             f"Local PDF not found: {source_path}. Run neuralnotes.downloader first."
         )
 
-    prepared = _build_pipeline().prepare(source_path, document_id=paper.anthology_id)
+    prepared = _build_pipeline(chunking_strategy).prepare(
+        source_path, document_id=paper.anthology_id
+    )
     engine = create_database_engine(settings)
     try:
         session_factory = create_database_session_factory(engine)
@@ -164,6 +196,7 @@ def ingest_manifest(
     pdf_dir: Path = DEFAULT_OUTPUT_DIR,
     workspace_id: UUID = DEFAULT_WORKSPACE_ID,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
+    chunking_strategy: ChunkStrategy = "fixed_size",
     settings: Settings | None = None,
 ) -> BatchIngestionResult:
     """Process selected or all manifest papers one at a time.
@@ -200,7 +233,7 @@ def ingest_manifest(
     failures: list[IngestionFailure] = []
     try:
         check_database_connection(engine)
-        pipeline = _build_pipeline()
+        pipeline = _build_pipeline(chunking_strategy)
         session_factory = create_database_session_factory(engine)
 
         for paper in selected_papers:
@@ -281,6 +314,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"(default: {DEFAULT_WORKSPACE_NAME})."
         ),
     )
+    parser.add_argument(
+        "--chunking-strategy",
+        choices=CHUNKING_STRATEGIES,
+        default="fixed_size",
+        help="Chunking strategy to store (default: fixed_size).",
+    )
     args = parser.parse_args(argv)
 
     configure_logging()
@@ -292,6 +331,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 pdf_dir=args.pdf_dir,
                 workspace_id=args.workspace_id,
                 workspace_name=args.workspace_name,
+                chunking_strategy=args.chunking_strategy,
             )
             chunk_count = sum(item.chunk_count for item in result.ingested)
             LOGGER.info(
@@ -308,6 +348,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             pdf_dir=args.pdf_dir,
             workspace_id=args.workspace_id,
             workspace_name=args.workspace_name,
+            chunking_strategy=args.chunking_strategy,
         )
     except Exception:
         LOGGER.exception("Ingestion failed for paper %s", args.paper_id)

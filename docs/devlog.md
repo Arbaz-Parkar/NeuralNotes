@@ -127,4 +127,10 @@
 - Committed and pushed the workspace-scoped BM25 adapter as `3ae63a6` (`feat: build workspace-scoped BM25 indexes`).
 - Added `POST /v1/search`, a retrieval-only endpoint that validates query length and top-k bounds, opens a request-scoped database session, filters chunks by workspace, and returns source passages with page/character provenance and BM25 scores.
 - Added API tests for workspace isolation and blank-query validation. The focused API, adapter, and BM25 suite passed all 19 tests. Ruff found one import-order issue and one formatter suggestion; both fixes are applied, with lint and format reruns pending.
-- Next: rerun Ruff checks, then smoke-test lexical search against the two locally ingested papers.
+- Committed and pushed the search API as `d1633b8` (`feat: add workspace-scoped BM25 search API`).
+- Expanded the ingestion CLI to select fixed-size, recursive, or sentence-window chunking for both single-paper and batch runs. Fixed-size remains the default; comparative runs should use separate workspace ids so later imports do not replace earlier strategy results.
+- Added a workspace-scoped ingestion statistics command that reports ready documents, chunk counts by strategy, and the token-count distribution. It can print Markdown or write a report file.
+- Added strategy-selection and statistics tests. The focused ingestion, batch, and statistics suites passed all 14 tests.
+- Smoke-tested the 13-page DPR paper in separate workspaces: 195 recursive chunks and 471 sentence-window chunks. The existing fixed-size workspace contains 181 chunks. Generated one Markdown statistics report for each strategy workspace.
+- Ruff found an import-order issue in `test_ingestion_cli.py` and one formatting change in `stats.py`; both fixes are applied, with Ruff reruns pending.
+- Next: rerun Ruff checks, commit the selectable chunking and statistics milestone, then smoke-test the BM25 search API against the local workspaces.

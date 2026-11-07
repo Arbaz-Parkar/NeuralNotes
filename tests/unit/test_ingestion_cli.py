@@ -9,6 +9,12 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from neuralnotes.chunking import Chunk as SourceChunk
+from neuralnotes.chunking import (
+    FixedSizeChunker,
+    RecursiveChunker,
+    SentenceWindowChunker,
+    TokenSpan,
+)
 from neuralnotes.db import Base, Chunk, Document, Workspace
 from neuralnotes.downloader import Paper
 from neuralnotes.ingestion import cli
@@ -27,6 +33,11 @@ class FakePipeline:
     def prepare(self, source_path: Path, *, document_id: str) -> PreparedDocument:
         self.received = source_path, document_id
         return self.prepared
+
+
+class EmptyTokenizer:
+    def token_spans(self, text: str) -> tuple[TokenSpan, ...]:
+        return ()
 
 
 def _paper() -> Paper:
@@ -77,7 +88,7 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
     prepared = _prepared_document(source_path)
     pipeline = FakePipeline(prepared)
     monkeypatch.setattr(cli, "load_manifest", lambda _path: [_paper()])
-    monkeypatch.setattr(cli, "_build_pipeline", lambda: pipeline)
+    monkeypatch.setattr(cli, "_build_pipeline", lambda _strategy: pipeline)
 
     database_path = tmp_path / "neuralnotes.sqlite"
     database_url = f"sqlite+pysqlite:///{database_path.as_posix()}"
@@ -91,6 +102,7 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
         pdf_dir=pdf_dir,
         workspace_id=WORKSPACE_ID,
         workspace_name="Test workspace",
+        chunking_strategy="sentence_window",
         settings=Settings(database_url=database_url),
     )
 
@@ -118,6 +130,23 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
         assert len(chunks[0].embedding) == 384
     finally:
         verification_engine.dispose()
+
+
+@pytest.mark.parametrize(
+    ("strategy", "expected_type"),
+    [
+        ("fixed_size", FixedSizeChunker),
+        ("recursive", RecursiveChunker),
+        ("sentence_window", SentenceWindowChunker),
+    ],
+)
+def test_build_chunker_selects_requested_strategy(
+    strategy: str,
+    expected_type: type[object],
+) -> None:
+    chunker = cli._build_chunker(EmptyTokenizer(), strategy)
+
+    assert isinstance(chunker, expected_type)
 
 
 def test_ingest_paper_rejects_id_missing_from_verified_manifest(
