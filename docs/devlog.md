@@ -120,6 +120,8 @@
 
 - Confirmed batch manifest ingestion was committed as `3be62d5` and pushed.
 - Added an in-memory BM25 index over source-aware chunks. It builds term-frequency postings, applies the BM25 length and inverse-document-frequency formula, and uses a min-heap for deterministic top-k results.
-- Added focused unit tests for the scoring formula, case-insensitive tokenization, tie ordering, top-k limits, and invalid input. Validation is pending.
+- Added focused unit tests for the scoring formula, case-insensitive tokenization, tie ordering, top-k limits, and invalid input. All 14 focused tests passed; after removing one unused import and applying Ruff's formatting suggestions, committed as `978e2f0` (`feat: add in-memory BM25 retrieval index`).
 - Added `docs/complexity_notes.md` with the BM25 formula, complexity estimates, limitations, and the workspace-scoping requirement.
-- Next: run the BM25 tests and Ruff checks, then connect the index to workspace-scoped persisted chunks.
+- Added a SQLAlchemy adapter that loads chunks using a workspace-id filter and builds a deterministic in-memory BM25 snapshot. Added SQLite tests for workspace isolation and an empty workspace; validation is pending.
+- The combined BM25 and database-adapter test run passed all 16 tests, and all 62 files passed the format check. Ruff found an import-order issue in the adapter test; applied Ruff's suggested import layout, with lint rerun pending.
+- Next: rerun Ruff lint, then commit the workspace-scoped BM25 adapter before connecting the index to a query service.
