@@ -124,4 +124,7 @@
 - Added `docs/complexity_notes.md` with the BM25 formula, complexity estimates, limitations, and the workspace-scoping requirement.
 - Added a SQLAlchemy adapter that loads chunks using a workspace-id filter and builds a deterministic in-memory BM25 snapshot. Added SQLite tests for workspace isolation and an empty workspace; validation is pending.
 - The combined BM25 and database-adapter test run passed all 16 tests, and all 62 files passed the format check. Ruff found an import-order issue in the adapter test; applied Ruff's suggested import layout, with lint rerun pending.
-- Next: rerun Ruff lint, then commit the workspace-scoped BM25 adapter before connecting the index to a query service.
+- Committed and pushed the workspace-scoped BM25 adapter as `3ae63a6` (`feat: build workspace-scoped BM25 indexes`).
+- Added `POST /v1/search`, a retrieval-only endpoint that validates query length and top-k bounds, opens a request-scoped database session, filters chunks by workspace, and returns source passages with page/character provenance and BM25 scores.
+- Added API tests for workspace isolation and blank-query validation. The focused API, adapter, and BM25 suite passed all 19 tests. Ruff found one import-order issue and one formatter suggestion; both fixes are applied, with lint and format reruns pending.
+- Next: rerun Ruff checks, then smoke-test lexical search against the two locally ingested papers.

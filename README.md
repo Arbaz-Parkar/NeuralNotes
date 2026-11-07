@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 7 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, three chunking strategies, tokenizer and embedding adapters, workspace-scoped persistence, content-addressed embedding caching, and an initial BM25 retrieval path are implemented. Single-paper ingestion stored the 13-page DPR paper with 181 chunks. A two-paper batch smoke test stored 424 chunks across 32 pages with zero failures; 19 focused tests and both Ruff checks passed. The BM25 core and workspace adapter tests passed (16 combined); one Ruff import-order fix is applied, with lint rerun pending.
+> **Project status — 7 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, three chunking strategies, tokenizer and embedding adapters, workspace-scoped persistence, content-addressed embedding caching, and an initial BM25 search API are implemented. Single-paper ingestion stored the 13-page DPR paper with 181 chunks. A two-paper batch smoke test stored 424 chunks across 32 pages with zero failures; 19 focused tests and both Ruff checks passed. The API, BM25 adapter, and core test run passed 19 tests; Ruff import-order and formatting fixes are applied, with checks pending rerun.
 
 ## What works today
 
@@ -21,6 +21,7 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A sentence-window chunker creates sentence-centered chunks and adds neighboring sentences when they fit within the token cap. Oversized sentences are split into bounded pieces; punctuation-based sentence detection has a small abbreviation list and remains heuristic. Its focused tests and Ruff checks passed before commit `b85129d`.
 - A SQLite embedding cache keys vectors by model name, embedding type, and a SHA-256 hash of exact input text. The ingestion CLI uses the cache at the ignored `data/cache/embeddings.sqlite3` path, so repeat imports reuse embeddings without storing source text in the cache. Its focused tests and Ruff checks passed before commit `90198cf`.
 - An in-memory BM25 core builds an inverted term-frequency index over existing `Chunk` objects and returns deterministic top-k results. It uses case-folded Unicode word tokens and configurable `k1`/`b` parameters. A SQLAlchemy adapter builds an index from rows filtered to one workspace. The combined BM25 and adapter test run passed all 16 tests; an import-order fix was applied and Ruff lint rerun is pending. Retrieval quality has not been measured; see [complexity notes](docs/complexity_notes.md).
+- `POST /v1/search` accepts a workspace id, query, and top-k limit, then returns matching passages with chunk ids, page numbers, character offsets, and BM25 scores. The database session is scoped to the request, and the index loads only the requested workspace's chunks. Its API, adapter, and core tests passed (19 total). Ruff import-order and formatting fixes are applied; checks are pending rerun. This route returns passages only; answer generation and authentication are not implemented yet.
 - The initial local English embedding baseline is `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions). Its fast tokenizer adapter passed 10 focused unit tests and returned character spans from a real tokenizer call. The lazy Sentence Transformers adapter passed 14 focused unit tests; a real CPU smoke check returned 384-dimensional document and query vectors with unit norm. Install the pinned optional dependency with `pip install -e ".[dev,embeddings]"`. This is a starting point for later measured comparison, not a proven best model.
 - A document-preparation pipeline composes parsing, page-preserving cleaning, fixed-size chunking, and batched embeddings in memory. A SQLAlchemy persistence adapter stores its metadata and chunks under one workspace-scoped transaction, computes a SHA-256 source hash, and replaces prior chunks on repeat imports. Persistence and pipeline unit tests passed in the latest 12-test focused run.
 - A single-paper ingestion CLI selects a license-checked manifest record, reads its already-downloaded PDF, runs the local parser/chunker/embedder pipeline, creates a default workspace if needed, and stores document/license metadata and chunks in one transaction. It uses the `all-MiniLM-L6-v2` model on CPU in the current environment. Its smoke check stored the 13-page DPR paper as 181 chunks.
@@ -31,14 +32,14 @@ The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ig
 
 ## Architecture and current status
 
-The diagram distinguishes available pieces from planned work. Docker Compose starts PostgreSQL, but the API does not connect to it yet.
+The diagram distinguishes available pieces from planned work. The API uses PostgreSQL for workspace-scoped lexical search; ingestion still runs through the CLI.
 
 ```mermaid
 flowchart LR
     subgraph ready[Available now]
         MANIFEST[Verified paper manifest] --> DOWNLOADER[ACL PDF downloader]
         DOWNLOADER --> RAW[Local PDFs<br/>ignored by Git]
-        API[FastAPI health endpoint]
+        API[FastAPI health and BM25 search]
         COMPOSE[Docker Compose] --> DB[(PostgreSQL + pgvector)]
     end
 
@@ -51,6 +52,7 @@ flowchart LR
         INGEST[Ingestion CLI and API]
         PARSE --> CLEAN --> CHUNK --> INDEX --> DB
         DB -. scoped chunk load .-> BM25
+        API -. lexical search .-> BM25
         INGEST --> PARSE
     end
 
@@ -101,6 +103,13 @@ Start the API:
 ```
 
 Open `http://127.0.0.1:8000/health` to check the health endpoint and `http://127.0.0.1:8000/docs` for the interactive API documentation.
+
+With the local papers ingested, search the default workspace from another PowerShell terminal:
+
+```powershell
+$searchBody = @{ workspace_id = "11111111-1111-4111-8111-111111111111"; query = "dense passage retrieval"; top_k = 3 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/v1/search" -Method Post -ContentType "application/json" -Body $searchBody
+```
 
 ### Install the optional embedding dependency
 
@@ -164,7 +173,7 @@ It writes candidate repeated top and bottom lines to the ignored `data/processed
 
 The corpus scan found 8,469 hard-hyphen line-break candidates. The sample includes word wraps such as `us- / ing` and legitimate compounds such as `dual- / encoder`; hard hyphens therefore remain unchanged until a reliable lexical check is available.
 
-Phase 2 is building the ingestion and indexing path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text. The initial embedding baseline is `all-MiniLM-L6-v2`, with a provisional 100-token chunk and 20-token overlap; no embedding quality or speed comparison has been run. The first in-memory BM25 implementation and formula tests have been added; focused validation and connection to workspace-scoped database chunks remain pending.
+Phase 2 is building the ingestion and indexing path. In one run, pypdf was faster and emitted about twice as many whitespace-separated words as pdfplumber's default mode. A visual check of the first paper found its spacing more readable. pypdf is the initial choice, with the limits of this small comparison recorded in [ADR 003](docs/adr/003-pdf-parser.md) and the [comparison notes](docs/parser_comparison.md). The adapter read the 13-page DPR paper and returned 56,093 characters. The whitespace cleaner passed 5 focused tests; its application to that paper also returned 56,093 characters, so it made no net character-count change on this sample. Review of the first margin report found that varying numeric-only printed page numbers were grouped into one candidate. The audit now skips numeric-only margin lines and produced 81 candidates on the latest corpus run. Repeated table headings and captions were confirmed as document content. Sequential numeric page-footer cleanup passed 8 focused tests and Ruff; a sample check confirmed printed numbers were removed from pages 1–3 and 35–36 of a 36-page paper while retaining page text. The initial embedding baseline is `all-MiniLM-L6-v2`, with a provisional 100-token chunk and 20-token overlap; no embedding quality or speed comparison has been run. The BM25 core and workspace adapter passed 16 focused tests, and `POST /v1/search` now returns workspace-scoped lexical results; API validation is pending.
 
 Not implemented yet: general repeated header/footer removal, hard-hyphen line-break handling, API ingestion, vector retrieval and hybrid ranking, answer generation, evaluations, web UI, and deployment. The BM25 workspace index is an in-memory snapshot that must be rebuilt after workspace documents change. There is no demo recording or measured RAG result yet.
 
