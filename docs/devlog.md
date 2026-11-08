@@ -134,3 +134,12 @@
 - Smoke-tested the 13-page DPR paper in separate workspaces: 195 recursive chunks and 471 sentence-window chunks. The existing fixed-size workspace contains 181 chunks. Generated one Markdown statistics report for each strategy workspace.
 - Ruff found an import-order issue in `test_ingestion_cli.py` and one formatting change in `stats.py`; both fixes are applied, with Ruff reruns pending.
 - Next: rerun Ruff checks, commit the selectable chunking and statistics milestone, then smoke-test the BM25 search API against the local workspaces.
+
+## 2026-11-08
+
+- Confirmed the selectable chunking and statistics milestone was committed as `6e0e7b2`.
+- Followed the project phase order: started Phase 4 retrieval evaluation foundations before treating chunking or search smoke checks as comparisons.
+- Added pure functions for Precision@k, Recall@k, HitRate@k, ReciprocalRank@k, and binary nDCG@k, plus known-answer tests. Test and Ruff validation are pending; no metric results are reported yet.
+- Added `docs/evaluation.md` to define metric behavior and document what the benchmark harness still needs, including verified span-based relevance labels, split discipline, aggregation, and uncertainty intervals.
+- Week 1 review (1–7 November): completed the foundation, paper corpus, parsing/cleaning, chunking, embeddings, persistence, ingestion CLI, initial BM25 core and API, and chunking statistics. Phase 4 is behind its original schedule: no verified golden questions, metric runner, baseline report, or CI regression fixture exists yet. Week 2 will prioritize the retrieval evaluation harness before Phase 5 comparisons; scope should stay focused on the P0 path.
+- Next: run the metric unit tests and Ruff, then add validated evidence-span labels and the evaluator runner.

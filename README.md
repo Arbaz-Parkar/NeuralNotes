@@ -2,7 +2,7 @@
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 7 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in progress. PDF, Markdown, and plain-text parsers, three selectable chunking strategies, tokenizer and embedding adapters, workspace-scoped persistence, content-addressed embedding caching, an initial BM25 search API, and a workspace ingestion-statistics report are implemented. The 13-page DPR paper produced 181 fixed-size chunks, 195 recursive chunks, and 471 sentence-window chunks in separate workspaces. The statistics command generated a report for each workspace. The focused ingestion, batch, and statistics tests passed (14 total); Ruff import-order and formatting fixes are pending rerun.
+> **Project status — 8 November 2026:** the foundation and initial paper download are complete. Phase 2 ingestion is in place, and Phase 4 evaluation work has started before retrieval optimization. The 13-page DPR paper produced 181 fixed-size chunks, 195 recursive chunks, and 471 sentence-window chunks in separate workspaces. The statistics command generated a report for each workspace. The initial ranking metric functions and known-answer tests have been added; validation is pending. These chunk counts are smoke-test observations, not retrieval-quality findings.
 
 ## What works today
 
@@ -27,10 +27,11 @@ NeuralNotes is a study and research workspace designed to make answers about tec
 - A single-paper ingestion CLI selects a license-checked manifest record, reads its already-downloaded PDF, runs the local parser/chunker/embedder pipeline, creates a default workspace if needed, and stores document/license metadata and chunks in one transaction. It uses the `all-MiniLM-L6-v2` model on CPU in the current environment. Its smoke check stored the 13-page DPR paper as 181 chunks.
 - The ingestion CLI can select `fixed_size`, `recursive`, or `sentence_window` chunking with `--chunking-strategy`; `fixed_size` remains the default. A separate workspace per strategy preserves each version of the same source for comparison. All 14 focused ingestion, batch, and statistics tests passed.
 - `python -m neuralnotes.ingestion.stats --workspace-id <UUID>` reports ready-document and chunk counts, chunks by strategy, and min/median/95th-percentile/mean/max token counts. It can print Markdown or save it with `--output`. Two report tests passed, and reports were generated for the three sample workspaces.
+- `neuralnotes.retrieval.metrics` implements Precision@k, Recall@k, HitRate@k, ReciprocalRank@k, and binary nDCG@k. Unit tests use a small ranking with known answers; run the tests and Ruff checks before treating the implementation as validated. A verified question set and retrieval-quality results do not exist yet.
 - SQLAlchemy models and Alembic migrations define workspace-scoped documents and chunks. Chunk rows retain page and character provenance, strategy and model metadata, and 384-dimensional vectors with a cosine HNSW index. The local PostgreSQL migration was applied for the ingestion smoke check, and a query confirmed the document is `ready` with 181 chunks. See [ADR 005](docs/adr/005-database-connectivity.md), [ADR 006](docs/adr/006-document-schema.md), and [ADR 007](docs/adr/007-pgvector-chunk-storage.md).
 - Unit tests, Ruff checks, pre-commit hooks, and a GitHub Actions workflow for lint and tests.
 
-The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). No retrieval or answer-quality metrics exist yet; those will be added with the evaluation harness.
+The 30 PDFs were downloaded successfully on 3 November 2026. They stay in Git-ignored local storage; the manifest and downloader are committed. The downloader's unit tests passed (41 tests). Metric code is being built, but there are no verified evaluation questions or retrieval/answer quality findings yet.
 
 ## Architecture and current status
 
