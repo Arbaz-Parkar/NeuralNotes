@@ -139,7 +139,11 @@
 
 - Confirmed the selectable chunking and statistics milestone was committed as `6e0e7b2`.
 - Followed the project phase order: started Phase 4 retrieval evaluation foundations before treating chunking or search smoke checks as comparisons.
-- Added pure functions for Precision@k, Recall@k, HitRate@k, ReciprocalRank@k, and binary nDCG@k, plus known-answer tests. Test and Ruff validation are pending; no metric results are reported yet.
+- Added pure functions for Precision@k, Recall@k, HitRate@k, ReciprocalRank@k, and binary nDCG@k, plus known-answer tests. All 12 focused tests and Ruff checks passed; committed as `13ef3ad` (`feat: add retrieval ranking metrics`). No retrieval-quality results are reported.
 - Added `docs/evaluation.md` to define metric behavior and document what the benchmark harness still needs, including verified span-based relevance labels, split discipline, aggregation, and uncertainty intervals.
+- Added a Pydantic JSONL case schema with explicit answerability, category, dev/test split, reference answer, page-local character evidence spans, and a verification flag. The loader rejects malformed/duplicate ids and returns only verified cases from the selected split.
+- Added document/page/span-to-chunk relevance mapping and a callback-based evaluator that reports per-query and macro-averaged ranking metrics at configurable cutoffs. Unanswerable cases are counted separately and excluded from ranking averages; missing chunk matches for verified answerable labels fail loudly.
+- Added tests for case validation and loading, evidence overlap, workspace-independent chunk relevance, split guards, and metric aggregation. Run the evaluator tests and Ruff checks before committing; these checks have not yet been run.
+- Updated the evaluation notes and README to clarify that the JSON example is unverified, generated chunk counts are smoke observations, and a verified golden set or quality findings do not exist yet.
 - Week 1 review (1–7 November): completed the foundation, paper corpus, parsing/cleaning, chunking, embeddings, persistence, ingestion CLI, initial BM25 core and API, and chunking statistics. Phase 4 is behind its original schedule: no verified golden questions, metric runner, baseline report, or CI regression fixture exists yet. Week 2 will prioritize the retrieval evaluation harness before Phase 5 comparisons; scope should stay focused on the P0 path.
-- Next: run the metric unit tests and Ruff, then add validated evidence-span labels and the evaluator runner.
+- Next: run the metric and evaluator unit tests and Ruff, then manually verify the first evidence-span labels against the paper before scoring any retrieval configuration.
