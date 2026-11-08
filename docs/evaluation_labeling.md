@@ -1,6 +1,6 @@
 # Verifying retrieval evaluation cases
 
-Retrieval scores are meaningful only when the question and evidence labels have been checked by a person against the source. The repository has one verified development case as a labeling pilot, which is far too small for evaluation. Candidate questions remain `verified: false` and must not contribute to reports.
+Retrieval scores are meaningful only when the question and evidence labels have been checked against the source. The repository has five verified development cases from one paper as a labeling pilot, which is far too small for evaluation. Candidate questions remain `verified: false` and must not contribute to reports.
 
 ## Inspect a source page
 
@@ -22,6 +22,6 @@ For each candidate, confirm that the question is answerable from the cited paper
 
 Record the answerable evidence as one or more spans in `data/evaluation/golden.jsonl`. Evidence should cover the complete supporting phrase or sentence, not an arbitrarily broad page range. Confirm offsets against the cleaned page display. Set `verified` to true only after checking the question, answer, source, page, and spans. Keep roughly 70% of verified questions in `dev` and 30% in `test`; do not inspect test scores to choose retrieval settings. Include at least 15% unanswerable questions when building the full dataset, even though the current ranking runner excludes them from ranking averages.
 
-Proposed records that still need review are kept separately in `data/evaluation/candidates.jsonl` with `verified: false`. Check each candidate against the PDF and its inspector output. When a candidate is accurate, move it into `golden.jsonl`, assign the intended split and final query id, and set `verified: true`. The evaluation loader ignores unverified records and will not score the candidates file as it currently stands.
+Proposed records that still need review should be kept separately from the scored dataset with `verified: false`. Check each candidate against the PDF and its inspector output. When a candidate is accurate, move it into `golden.jsonl`, assign the intended split and final query id, and set `verified: true`. The evaluation loader ignores unverified records.
 
 The JSONL case schema and loader reject malformed ranges, inconsistent answerability labels, and duplicate query ids; the loader returns verified records from only the requested split. A version name should change whenever case content or verification labels change, so reports identify the exact dataset revision.

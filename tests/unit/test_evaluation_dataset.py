@@ -85,12 +85,12 @@ def test_loader_rejects_duplicate_ids_and_empty_verified_split(tmp_path) -> None
         load_cases(path, split="dev")
 
 
-def test_committed_pilot_case_is_verified_and_points_to_dpr_page_one() -> None:
+def test_committed_pilot_cases_are_verified_and_point_to_dpr_page_one() -> None:
     dataset_path = Path(__file__).parents[2] / "data" / "evaluation" / "golden.jsonl"
 
     cases = load_cases(dataset_path, split="dev")
 
-    assert len(cases) == 1
+    assert len(cases) == 5
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -99,12 +99,21 @@ def test_committed_pilot_case_is_verified_and_points_to_dpr_page_one() -> None:
         753,
         944,
     )
-
-
-def test_candidate_cases_are_not_included_in_scored_dataset() -> None:
-    candidates_path = (
-        Path(__file__).parents[2] / "data" / "evaluation" / "candidates.jsonl"
-    )
-
-    with pytest.raises(ValueError, match="No verified"):
-        load_cases(candidates_path, split="dev")
+    assert {case.query_id for case in cases} == {
+        "dpr-dev-001",
+        "dpr-dev-002",
+        "dpr-dev-003",
+        "dpr-dev-004",
+        "dpr-dev-005",
+    }
+    assert all(case.verified for case in cases)
+    assert {
+        case.query_id: (case.evidence[0].start_char, case.evidence[0].end_char)
+        for case in cases
+    } == {
+        "dpr-dev-001": (753, 944),
+        "dpr-dev-002": (531, 725),
+        "dpr-dev-003": (1008, 1142),
+        "dpr-dev-004": (1601, 1872),
+        "dpr-dev-005": (2177, 2287),
+    }

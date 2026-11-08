@@ -14,13 +14,13 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 ## Evaluation design still to build
 
-The current results are retrieval smoke checks, not quality findings. A first manually verified development case now exists in `data/evaluation/golden.jsonl`; it is a labeling pilot, not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
+The current results are retrieval smoke checks, not quality findings. Five manually verified development questions now exist in `data/evaluation/golden.jsonl`; this small pilot from one paper is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs a larger human-verified question set, bootstrap confidence intervals, paired comparison support, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on one question, single-paper chunk counts, or search smoke results.
+The evaluator still needs a larger human-verified question set, a held-out test split, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on this five-question, single-paper pilot, chunk counts, or search smoke results.
 
 ## Current dataset record
 
-Evaluation reports include seeded percentile bootstrap intervals over per-query scores and record the confidence level, resample count, and seed. A paired bootstrap helper estimates query-matched candidate-minus-baseline differences; generating comparison reports from paired runs is not implemented yet. With one query, an interval collapses to a point and is not useful for drawing conclusions.
+Evaluation reports include seeded percentile bootstrap intervals over per-query scores and record the confidence level, resample count, and seed. The paired comparison CLI estimates query-matched candidate-minus-baseline differences. With one query, an interval collapses to a point and is not useful for drawing conclusions.
 
 `EvaluationCase` is the JSONL record schema. Offsets are zero-based and end-exclusive within the source page, matching the current page-local chunk offsets. Every span therefore includes both a document id and one-based page number. `verified` defaults to false; only verified records in the requested `dev` or `test` split are loaded. Answerable questions need at least one evidence span, while unanswerable questions use the `unanswerable` category and have no evidence spans.
 
