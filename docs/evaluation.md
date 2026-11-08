@@ -16,7 +16,7 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 The current results are retrieval smoke checks, not quality findings. Five manually verified development questions now exist in `data/evaluation/golden.jsonl`; this small pilot from one paper is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs a larger human-verified question set, a held-out test split, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on this five-question, single-paper pilot, chunk counts, or search smoke results.
+The evaluator still needs a larger human-verified question set, a held-out test split, and a tiny CI regression fixture. Do not report a strategy as better based on this five-question, single-paper pilot, chunk counts, or search smoke results.
 
 ## Current dataset record
 
@@ -49,6 +49,10 @@ The example is schema-shaped candidate content only; its question, answer, and o
 `evaluate_retrieval` accepts a retrieval callback, so the same evidence labels can score BM25 or later retrievers. It returns per-question and macro-averaged values for each requested `k` (default 5, 10, and 20). The BM25 command-line runner and versioned report writer are now implemented; their test and style validation are pending.
 
 ## Paired report comparisons
+
+### 8 November pilot smoke run
+
+The BM25 evaluator completed on five verified DPR development questions in the fixed-size, recursive, and sentence-window workspaces, and both paired comparisons completed. Recall@k and HitRate@k were unchanged. At k=5, paired MRR differences were +0.1333 for both candidates; nDCG differences were +0.0839 for recursive and +0.1000 for sentence-window. These intervals are based on only five queries from one paper and are too unstable to select a strategy. The run confirms report generation and query pairing only. Generated reports remain in ignored local storage.
 
 `python -m neuralnotes.evaluation.comparison` reads two JSON evaluation run records and pairs their per-query metric values by query id. It rejects different dataset versions, splits, cutoffs, or query sets. Each interval estimates candidate minus baseline, so positive differences favor the candidate. The comparison does not tune parameters and should use `dev` for iteration; keep the held-out `test` split untouched until the final confirmation run.
 

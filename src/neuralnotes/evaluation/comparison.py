@@ -23,6 +23,7 @@ class _QueryMetrics(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     query_id: str = Field(min_length=1)
+    relevant_chunk_count: int | None = Field(default=None, ge=1)
     metrics_at_k: dict[str, dict[str, float]]
 
 

@@ -31,6 +31,7 @@ def _run(
         "per_query": [
             {
                 "query_id": query_id,
+                "relevant_chunk_count": 1,
                 "metrics_at_k": {
                     str(k): {"recall": score, "ndcg": score} for k in cutoffs
                 },
