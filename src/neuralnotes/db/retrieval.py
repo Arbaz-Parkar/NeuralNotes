@@ -24,6 +24,13 @@ def build_workspace_bm25_index(
     The caller should rebuild the index after that workspace's documents change.
     Only chunk rows matching ``workspace_id`` are loaded.
     """
+    return BM25Index(load_workspace_chunks(session, workspace_id), k1=k1, b=b)
+
+
+def load_workspace_chunks(
+    session: Session, workspace_id: UUID
+) -> tuple[SourceChunk, ...]:
+    """Load source-aware chunks belonging only to one workspace."""
     records = session.scalars(
         select(ChunkRecord)
         .where(ChunkRecord.workspace_id == workspace_id)
@@ -48,4 +55,4 @@ def build_workspace_bm25_index(
         )
         for record in records
     )
-    return BM25Index(chunks, k1=k1, b=b)
+    return chunks

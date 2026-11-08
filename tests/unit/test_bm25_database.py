@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from neuralnotes.db import Base, Document, Workspace
 from neuralnotes.db import Chunk as ChunkRecord
-from neuralnotes.db.retrieval import build_workspace_bm25_index
+from neuralnotes.db.retrieval import build_workspace_bm25_index, load_workspace_chunks
 
 
 def _add_document_chunk(
@@ -79,12 +79,15 @@ def test_workspace_bm25_index_excludes_other_workspaces() -> None:
         with Session(engine) as session:
             first_index = build_workspace_bm25_index(session, first_workspace_id)
             second_index = build_workspace_bm25_index(session, second_workspace_id)
+            first_chunks = load_workspace_chunks(session, first_workspace_id)
 
         assert first_index.document_count == 1
         assert [hit.chunk.document_id for hit in first_index.search("neural")] == [
             "paper-a"
         ]
         assert first_index.search("biology") == ()
+        assert len(first_chunks) == 1
+        assert first_chunks[0].document_id == "paper-a"
         assert [hit.chunk.document_id for hit in second_index.search("biology")] == [
             "paper-b"
         ]

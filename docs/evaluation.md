@@ -44,4 +44,19 @@ The evaluator still needs dataset schemas and validation, span-to-chunk relevanc
 
 The example is schema-shaped candidate content only; its question, answer, and offsets are not verified labels and must not be added to the scored dataset without checking the source PDF. The current runner maps an evidence span to any chunk from the same document and page that overlaps at least the configured fraction of the evidence span (default 0.5). A missing match on a verified answerable question is an error, which helps catch stale offsets and parser changes. It excludes unanswerable cases from ranking averages and reports their count separately; answerability and abstention metrics need a later evaluator.
 
-`evaluate_retrieval` accepts a retrieval callback, so the same evidence labels can score BM25 or later retrievers. It returns per-question and macro-averaged values for each requested `k` (default 5, 10, and 20). A command-line runner and versioned report writer are not implemented yet.
+`evaluate_retrieval` accepts a retrieval callback, so the same evidence labels can score BM25 or later retrievers. It returns per-question and macro-averaged values for each requested `k` (default 5, 10, and 20). The BM25 command-line runner and versioned report writer are now implemented; their test and style validation are pending.
+
+## Local BM25 command
+
+The CLI loads chunks from exactly one PostgreSQL workspace, builds an in-memory BM25 snapshot, scores only verified records from the requested split, and writes a JSON run record plus a Markdown summary. Each run receives a UTC timestamp in its filename, so rerunning does not replace an earlier report. The JSON records the dataset version, workspace, split, evidence threshold, BM25 `k1` and `b`, indexed chunk count, per-query values, and aggregate metrics.
+
+```powershell
+.\.venv\Scripts\python.exe -m neuralnotes.evaluation.cli `
+    --dataset .\data\evaluation\golden.jsonl `
+    --dataset-version v0.1 `
+    --split dev `
+    --workspace-id 11111111-1111-4111-8111-111111111111 `
+    --output-dir .\data\processed\evaluations
+```
+
+Only use a dataset version after manually checking the included questions and spans against the source pages. The example path above is a future location; the project does not yet contain a human-verified golden dataset. Reports explicitly state that a single run without confidence intervals cannot establish that one configuration is better. The current CLI supports BM25 and one workspace per run, making it possible to compare the three separately ingested chunking workspaces once verified labels exist.
