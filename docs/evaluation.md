@@ -20,6 +20,8 @@ The evaluator still needs a larger human-verified question set, bootstrap confid
 
 ## Current dataset record
 
+Evaluation reports include seeded percentile bootstrap intervals over per-query scores and record the confidence level, resample count, and seed. A paired bootstrap helper estimates query-matched candidate-minus-baseline differences; generating comparison reports from paired runs is not implemented yet. With one query, an interval collapses to a point and is not useful for drawing conclusions.
+
 `EvaluationCase` is the JSONL record schema. Offsets are zero-based and end-exclusive within the source page, matching the current page-local chunk offsets. Every span therefore includes both a document id and one-based page number. `verified` defaults to false; only verified records in the requested `dev` or `test` split are loaded. Answerable questions need at least one evidence span, while unanswerable questions use the `unanswerable` category and have no evidence spans.
 
 ```json

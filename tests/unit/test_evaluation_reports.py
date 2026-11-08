@@ -58,10 +58,13 @@ def test_report_writer_saves_json_and_markdown_with_run_configuration(tmp_path) 
     payload = json.loads(json_path.read_text(encoding="utf-8"))
     markdown = markdown_path.read_text(encoding="utf-8")
     assert payload["workspace_id"] == str(workspace_id)
+    assert payload["report_schema_version"] == 2
     assert payload["dataset_version"] == "dev-v1"
     assert payload["retriever"] == {"b": 0.75, "k1": 1.5, "name": "BM25"}
     assert payload["metrics_at_k"]["1"]["recall"] == 1.0
-    assert "single run" in markdown
+    assert payload["confidence_intervals_at_k"]["1"]["recall"]["lower"] == 1.0
+    assert payload["bootstrap"]["seed"] == 0
+    assert "one query" in markdown
     assert json_path.name.endswith("run-001.json")
 
 

@@ -31,6 +31,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--evidence-overlap", type=float, default=0.5)
     parser.add_argument("--k1", type=float, default=1.5)
     parser.add_argument("--b", type=float, default=0.75)
+    parser.add_argument("--confidence-level", type=float, default=0.95)
+    parser.add_argument("--bootstrap-resamples", type=int, default=2_000)
+    parser.add_argument("--bootstrap-seed", type=int, default=0)
     args = parser.parse_args(argv)
 
     cases = load_cases(args.dataset, split=args.split)
@@ -65,6 +68,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         bm25_k1=args.k1,
         bm25_b=args.b,
         chunk_count=len(chunks),
+        confidence_level=args.confidence_level,
+        bootstrap_resamples=args.bootstrap_resamples,
+        bootstrap_seed=args.bootstrap_seed,
     )
     print(f"Wrote evaluation JSON to {json_path}")
     print(f"Wrote evaluation Markdown to {markdown_path}")

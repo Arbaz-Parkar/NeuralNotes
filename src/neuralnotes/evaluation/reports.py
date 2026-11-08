@@ -2,10 +2,12 @@
 
 import json
 import re
+from dataclasses import asdict
 from pathlib import Path
 from uuid import UUID
 
 from neuralnotes.evaluation.runner import EvaluationReport
+from neuralnotes.evaluation.statistics import bootstrap_mean_interval
 
 _SAFE_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 
@@ -21,6 +23,9 @@ def write_evaluation_reports(
     bm25_k1: float,
     bm25_b: float,
     chunk_count: int,
+    confidence_level: float = 0.95,
+    bootstrap_resamples: int = 2_000,
+    bootstrap_seed: int = 0,
 ) -> tuple[Path, Path]:
     """Write a reproducible run record and a compact Markdown summary."""
     _validate_version(dataset_version, "dataset_version")
@@ -29,8 +34,23 @@ def write_evaluation_reports(
     stem = f"{dataset_version}__{workspace_id}__{report.split}__{run_id}"
     json_path = output_dir / f"{stem}.json"
     markdown_path = output_dir / f"{stem}.md"
+    confidence_intervals: dict[str, dict[str, dict[str, float | int]]] = {}
+    for k in report.k_values:
+        key = str(k)
+        confidence_intervals[key] = {}
+        for metric_name in report.metrics_at_k[key]:
+            values = tuple(
+                item.metrics_at_k[key][metric_name] for item in report.per_query
+            )
+            interval = bootstrap_mean_interval(
+                values,
+                confidence_level=confidence_level,
+                resamples=bootstrap_resamples,
+                seed=bootstrap_seed,
+            )
+            confidence_intervals[key][metric_name] = asdict(interval)
     payload = {
-        "report_schema_version": 1,
+        "report_schema_version": 2,
         "run_id": run_id,
         "dataset_version": dataset_version,
         "workspace_id": str(workspace_id),
@@ -42,6 +62,13 @@ def write_evaluation_reports(
         "excluded_unanswerable_query_count": report.excluded_unanswerable_query_count,
         "k_values": report.k_values,
         "metrics_at_k": report.metrics_at_k,
+        "confidence_intervals_at_k": confidence_intervals,
+        "bootstrap": {
+            "method": "percentile",
+            "confidence_level": confidence_level,
+            "resamples": bootstrap_resamples,
+            "seed": bootstrap_seed,
+        },
         "per_query": [
             {
                 "query_id": item.query_id,
@@ -60,7 +87,12 @@ def write_evaluation_reports(
 
 def _render_markdown(payload: dict[str, object]) -> str:
     metrics_at_k = payload["metrics_at_k"]
+    confidence_intervals = payload["confidence_intervals_at_k"]
     assert isinstance(metrics_at_k, dict)
+    assert isinstance(confidence_intervals, dict)
+    bootstrap = payload["bootstrap"]
+    assert isinstance(bootstrap, dict)
+    confidence_percent = bootstrap["confidence_level"] * 100
     lines = [
         f"# Retrieval evaluation — {payload['dataset_version']}",
         "",
@@ -80,19 +112,25 @@ def _render_markdown(payload: dict[str, object]) -> str:
         "",
         "## Macro-averaged ranking metrics",
         "",
-        "| k | Precision | Recall | Hit rate | MRR | nDCG |",
-        "| ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| k | Metric | Mean | Percentile confidence interval |",
+        "| ---: | --- | ---: | ---: |",
     ]
     for key, values in metrics_at_k.items():
-        lines.append(
-            f"| {key} | {values['precision']:.4f} | {values['recall']:.4f} | "
-            f"{values['hit_rate']:.4f} | {values['mrr']:.4f} | {values['ndcg']:.4f} |"
-        )
+        for metric_name, mean_value in values.items():
+            interval = confidence_intervals[key][metric_name]
+            lines.append(
+                f"| {key} | {metric_name} | {mean_value:.4f} | "
+                f"[{interval['lower']:.4f}, {interval['upper']:.4f}] |"
+            )
     lines.extend(
         (
             "",
-            "This is a single run. It does not include confidence intervals and is not "
-            "evidence that this configuration is better than another.",
+            f"Intervals use {bootstrap['resamples']} seeded percentile bootstrap "
+            f"resamples (seed {bootstrap['seed']}, confidence "
+            f"{confidence_percent:.1f}%).",
+            "Confidence intervals from very small query sets are unstable; with one "
+            "query the interval is degenerate. This report alone does not establish "
+            "that one configuration is better than another.",
             "",
         )
     )

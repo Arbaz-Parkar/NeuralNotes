@@ -156,6 +156,10 @@
 - Added a regression test that loads the committed pilot case and checks its verified flag and source span. Validation is pending.
 - Added four first-page candidate questions covering sparse baselines, a numeric retrieval result, the two-stage QA framework, and a SQuAD score example. They are kept in a separate JSONL file with `verified: false`, and a test checks that the scoring loader excludes them.
 - Next: review the four candidates against the PDF, move only accurate records into the verified dataset, and keep the one-case sample labeled as a pilot. Do not report retrieval quality from it.
+- Added a dependency-free, seeded percentile bootstrap interval for per-query metric means and a paired bootstrap interval for candidate-minus-baseline differences.
+- Integrated bootstrap intervals into JSON and Markdown evaluation reports and added CLI options for confidence level, resample count, and seed. The report calls out that a one-query interval is degenerate and not useful for comparison.
+- Added known-answer, reproducibility, paired-size, and invalid-input tests for bootstrap statistics, plus report assertions for recorded interval configuration. Validation is pending.
+- Next: run the evaluation/statistics suites and Ruff; continue collecting and manually verifying cases before interpreting any interval or comparing retrieval strategies.
 - Added a local source-page inspector that uses the manifest, pypdf parser, and cleaner, and displays page-local character offsets in the same coordinate system as stored chunks. Extracted text is printed to the terminal only.
 - Added tests for line ranges and empty pages, plus a labeling guide covering evidence verification, question categories, answerability, and dev/test split discipline. Validation is pending.
 - Next: run the inspector tests and Ruff, then manually verify the first candidate question and evidence span from the DPR paper before adding a verified dataset record.
