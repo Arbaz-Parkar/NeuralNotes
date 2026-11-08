@@ -99,3 +99,12 @@ def test_committed_pilot_case_is_verified_and_points_to_dpr_page_one() -> None:
         753,
         944,
     )
+
+
+def test_candidate_cases_are_not_included_in_scored_dataset() -> None:
+    candidates_path = (
+        Path(__file__).parents[2] / "data" / "evaluation" / "candidates.jsonl"
+    )
+
+    with pytest.raises(ValueError, match="No verified"):
+        load_cases(candidates_path, split="dev")

@@ -154,7 +154,8 @@
 - Added tests for line ranges and empty pages, plus a labeling guide covering evidence verification, question categories, answerability, and dev/test split discipline. Validation is pending.
 - Visually checked the DPR paper's first page against the inspector output. Added one verified development question with a paraphrased answer and a page-local evidence span; the row contains no copied source passage.
 - Added a regression test that loads the committed pilot case and checks its verified flag and source span. Validation is pending.
-- Next: run the inspector and dataset tests with Ruff, then add more manually verified cases across different question categories. Do not report retrieval quality from the one-case pilot.
+- Added four first-page candidate questions covering sparse baselines, a numeric retrieval result, the two-stage QA framework, and a SQuAD score example. They are kept in a separate JSONL file with `verified: false`, and a test checks that the scoring loader excludes them.
+- Next: review the four candidates against the PDF, move only accurate records into the verified dataset, and keep the one-case sample labeled as a pilot. Do not report retrieval quality from it.
 - Added a local source-page inspector that uses the manifest, pypdf parser, and cleaner, and displays page-local character offsets in the same coordinate system as stored chunks. Extracted text is printed to the terminal only.
 - Added tests for line ranges and empty pages, plus a labeling guide covering evidence verification, question categories, answerability, and dev/test split discipline. Validation is pending.
 - Next: run the inspector tests and Ruff, then manually verify the first candidate question and evidence span from the DPR paper before adding a verified dataset record.
