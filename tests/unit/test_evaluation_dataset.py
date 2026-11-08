@@ -1,6 +1,7 @@
 """Tests for verified retrieval evaluation records."""
 
 import json
+from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
@@ -82,3 +83,19 @@ def test_loader_rejects_duplicate_ids_and_empty_verified_split(tmp_path) -> None
     path.write_text(json.dumps(_record(split="test")), encoding="utf-8")
     with pytest.raises(ValueError, match="No verified"):
         load_cases(path, split="dev")
+
+
+def test_committed_pilot_case_is_verified_and_points_to_dpr_page_one() -> None:
+    dataset_path = Path(__file__).parents[2] / "data" / "evaluation" / "golden.jsonl"
+
+    cases = load_cases(dataset_path, split="dev")
+
+    assert len(cases) == 1
+    assert cases[0].query_id == "dpr-dev-001"
+    assert cases[0].verified is True
+    assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
+    assert cases[0].evidence[0].page_number == 1
+    assert (cases[0].evidence[0].start_char, cases[0].evidence[0].end_char) == (
+        753,
+        944,
+    )

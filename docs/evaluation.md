@@ -14,9 +14,9 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 ## Evaluation design still to build
 
-The current results are retrieval smoke checks, not quality findings. Before comparing chunking or retrieval configurations, build a verified JSONL question set whose evidence is recorded by document id and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
+The current results are retrieval smoke checks, not quality findings. A first manually verified development case now exists in `data/evaluation/golden.jsonl`; it is a labeling pilot, not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs a human-verified question set, bootstrap confidence intervals, paired comparison support, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on the current single-paper chunk counts or search smoke results.
+The evaluator still needs a larger human-verified question set, bootstrap confidence intervals, paired comparison support, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on one question, single-paper chunk counts, or search smoke results.
 
 ## Current dataset record
 

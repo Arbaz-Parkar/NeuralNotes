@@ -1,0 +1,1 @@
+{"query_id":"dpr-dev-001","question":"How are dense representations learned in this work?","split":"dev","category":"single_passage","answerable":true,"evidence":[{"document_id":"2020.emnlp-main.550","page_number":1,"start_char":753,"end_char":944}],"reference_answer":"From question and passage pairs using a simple dual-encoder framework.","verified":true}

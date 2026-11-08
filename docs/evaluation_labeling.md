@@ -1,6 +1,6 @@
 # Verifying retrieval evaluation cases
 
-Retrieval scores are meaningful only when the question and evidence labels have been checked by a person against the source. The repository does not include a verified golden set yet. Candidate questions remain `verified: false` and must not contribute to reports.
+Retrieval scores are meaningful only when the question and evidence labels have been checked by a person against the source. The repository has one verified development case as a labeling pilot, which is far too small for evaluation. Candidate questions remain `verified: false` and must not contribute to reports.
 
 ## Inspect a source page
 
