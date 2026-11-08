@@ -16,7 +16,7 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 The current results are retrieval smoke checks, not quality findings. Before comparing chunking or retrieval configurations, build a verified JSONL question set whose evidence is recorded by document id and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs dataset schemas and validation, span-to-chunk relevance mapping, aggregation across cases, a deterministic runner, versioned JSON/Markdown reports, bootstrap confidence intervals, and a tiny CI regression fixture. Do not report a strategy as better based on the current single-paper chunk counts or search smoke results.
+The evaluator still needs a human-verified question set, bootstrap confidence intervals, paired comparison support, a tiny CI regression fixture, and a baseline report. Do not report a strategy as better based on the current single-paper chunk counts or search smoke results.
 
 ## Current dataset record
 
@@ -60,3 +60,5 @@ The CLI loads chunks from exactly one PostgreSQL workspace, builds an in-memory 
 ```
 
 Only use a dataset version after manually checking the included questions and spans against the source pages. The example path above is a future location; the project does not yet contain a human-verified golden dataset. Reports explicitly state that a single run without confidence intervals cannot establish that one configuration is better. The current CLI supports BM25 and one workspace per run, making it possible to compare the three separately ingested chunking workspaces once verified labels exist.
+
+See [evaluation labeling](evaluation_labeling.md) for the page inspector, evidence review procedure, and dev/test split rules.
