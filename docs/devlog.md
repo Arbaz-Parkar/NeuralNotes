@@ -159,7 +159,9 @@
 - Added a dependency-free, seeded percentile bootstrap interval for per-query metric means and a paired bootstrap interval for candidate-minus-baseline differences.
 - Integrated bootstrap intervals into JSON and Markdown evaluation reports and added CLI options for confidence level, resample count, and seed. The report calls out that a one-query interval is degenerate and not useful for comparison.
 - Added known-answer, reproducibility, paired-size, and invalid-input tests for bootstrap statistics, plus report assertions for recorded interval configuration. Validation is pending.
-- Next: run the evaluation/statistics suites and Ruff; continue collecting and manually verifying cases before interpreting any interval or comparing retrieval strategies.
+- Added a paired-report comparison CLI that joins per-query scores by query id, enforces matching dataset version/split/cutoffs/query sets, and writes candidate-minus-baseline intervals as JSON and Markdown.
+- Added tests for paired differences, mismatch rejection, report output, and CLI execution. Validation is pending.
+- Next: run the comparison/evaluation tests and Ruff. Continue reviewing the unverified DPR candidates; do not run a retrieval comparison until enough cases are verified.
 - Added a local source-page inspector that uses the manifest, pypdf parser, and cleaner, and displays page-local character offsets in the same coordinate system as stored chunks. Extracted text is printed to the terminal only.
 - Added tests for line ranges and empty pages, plus a labeling guide covering evidence verification, question categories, answerability, and dev/test split discipline. Validation is pending.
 - Next: run the inspector tests and Ruff, then manually verify the first candidate question and evidence span from the DPR paper before adding a verified dataset record.

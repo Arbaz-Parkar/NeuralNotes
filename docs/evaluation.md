@@ -48,6 +48,19 @@ The example is schema-shaped candidate content only; its question, answer, and o
 
 `evaluate_retrieval` accepts a retrieval callback, so the same evidence labels can score BM25 or later retrievers. It returns per-question and macro-averaged values for each requested `k` (default 5, 10, and 20). The BM25 command-line runner and versioned report writer are now implemented; their test and style validation are pending.
 
+## Paired report comparisons
+
+`python -m neuralnotes.evaluation.comparison` reads two JSON evaluation run records and pairs their per-query metric values by query id. It rejects different dataset versions, splits, cutoffs, or query sets. Each interval estimates candidate minus baseline, so positive differences favor the candidate. The comparison does not tune parameters and should use `dev` for iteration; keep the held-out `test` split untouched until the final confirmation run.
+
+```powershell
+.\.venv\Scripts\python.exe -m neuralnotes.evaluation.comparison `
+    --baseline .\data\processed\evaluations\<baseline-run>.json `
+    --candidate .\data\processed\evaluations\<candidate-run>.json `
+    --output-dir .\data\processed\evaluations\comparisons
+```
+
+The command writes timestamped JSON and Markdown summaries with the paired sample count, confidence level, resample count, and seed. A confidence interval spanning zero does not establish a difference; small samples remain unstable even when an interval does not span zero.
+
 ## Local BM25 command
 
 The CLI loads chunks from exactly one PostgreSQL workspace, builds an in-memory BM25 snapshot, scores only verified records from the requested split, and writes a JSON run record plus a Markdown summary. Each run receives a UTC timestamp in its filename, so rerunning does not replace an earlier report. The JSON records the dataset version, workspace, split, evidence threshold, BM25 `k1` and `b`, indexed chunk count, per-query values, and aggregate metrics.
