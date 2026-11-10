@@ -1,6 +1,6 @@
 # Verifying retrieval evaluation cases
 
-Retrieval scores are meaningful only when the question and evidence labels have been checked against the source. The repository has eleven verified development cases across two papers as a labeling pilot, which is far too small for evaluation. Candidate questions remain `verified: false` and must not contribute to reports.
+Retrieval scores are meaningful only when the question and evidence labels have been checked against the source. The repository has eighteen verified development cases across three papers as a labeling pilot, which is far too small for evaluation. Candidate questions remain `verified: false` and must not contribute to reports.
 
 ## Inspect a source page
 

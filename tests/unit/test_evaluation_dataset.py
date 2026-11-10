@@ -90,7 +90,7 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
 
     cases = load_cases(dataset_path, split="dev")
 
-    assert len(cases) == 11
+    assert len(cases) == 18
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -111,6 +111,13 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "dxr-dev-004",
         "dxr-dev-005",
         "dxr-dev-006",
+        "r2ag-dev-001",
+        "r2ag-dev-002",
+        "r2ag-dev-003",
+        "r2ag-dev-004",
+        "r2ag-dev-005",
+        "r2ag-dev-006",
+        "r2ag-dev-007",
     }
     assert all(case.verified for case in cases)
     assert {
@@ -134,4 +141,11 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
             ("2024.emnlp-main.845", 1, 3822, 3913),
             ("2024.emnlp-main.845", 1, 3914, 4010),
         ),
+        "r2ag-dev-001": (("2024.findings-emnlp.678", 1, 744, 860),),
+        "r2ag-dev-002": (("2024.findings-emnlp.678", 1, 875, 1144),),
+        "r2ag-dev-003": (("2024.findings-emnlp.678", 1, 1145, 1282),),
+        "r2ag-dev-004": (("2024.findings-emnlp.678", 1, 1283, 1514),),
+        "r2ag-dev-005": (("2024.findings-emnlp.678", 1, 1515, 1605),),
+        "r2ag-dev-006": (("2024.findings-emnlp.678", 1, 1606, 1703),),
+        "r2ag-dev-007": (("2024.findings-emnlp.678", 1, 1704, 1846),),
     }
