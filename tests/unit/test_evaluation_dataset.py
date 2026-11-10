@@ -90,7 +90,7 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
 
     cases = load_cases(dataset_path, split="dev")
 
-    assert len(cases) == 35
+    assert len(cases) == 56
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -135,6 +135,27 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "dxr-dev-010",
         "dxr-dev-011",
         "dxr-dev-012",
+        "ragbp-dev-001",
+        "ragbp-dev-002",
+        "ragbp-dev-003",
+        "ragbp-dev-004",
+        "ragbp-dev-005",
+        "ragbp-dev-006",
+        "mirage-dev-001",
+        "mirage-dev-002",
+        "mirage-dev-003",
+        "mirage-dev-004",
+        "flare-dev-001",
+        "flare-dev-002",
+        "flare-dev-003",
+        "flare-dev-004",
+        "flare-dev-005",
+        "rarag-dev-001",
+        "rarag-dev-002",
+        "rarag-dev-003",
+        "rarag-dev-004",
+        "rarag-dev-005",
+        "rarag-dev-006",
     }
     assert all(case.verified for case in cases)
     assert {
@@ -182,4 +203,31 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "dxr-dev-010": (("2024.emnlp-main.845", 2, 3322, 3566),),
         "dxr-dev-011": (("2024.emnlp-main.845", 2, 3916, 4069),),
         "dxr-dev-012": (("2024.emnlp-main.845", 2, 4413, 4542),),
+        "ragbp-dev-001": (("2024.emnlp-main.981", 1, 617, 846),),
+        "ragbp-dev-002": (("2024.emnlp-main.981", 1, 847, 1167),),
+        "ragbp-dev-003": (("2024.emnlp-main.981", 1, 1168, 1444),),
+        "ragbp-dev-004": (("2024.emnlp-main.981", 1, 1445, 1724),),
+        "ragbp-dev-005": (("2024.emnlp-main.981", 1, 2688, 3249),),
+        "ragbp-dev-006": (("2024.emnlp-main.981", 1, 3250, 3551),),
+        "mirage-dev-001": (("2025.findings-naacl.157", 1, 892, 1167),),
+        "mirage-dev-002": (("2025.findings-naacl.157", 1, 1168, 1389),),
+        "mirage-dev-003": (("2025.findings-naacl.157", 1, 615, 892),),
+        "mirage-dev-004": (
+            ("2025.findings-naacl.157", 1, 3131, 3596),
+            ("2025.findings-naacl.157", 1, 3597, 4013),
+        ),
+        "flare-dev-001": (("2023.emnlp-main.495", 1, 799, 1074),),
+        "flare-dev-002": (("2023.emnlp-main.495", 1, 1075, 1262),),
+        "flare-dev-003": (("2023.emnlp-main.495", 1, 1263, 1585),),
+        "flare-dev-004": (("2023.emnlp-main.495", 1, 1585, 1718),),
+        "flare-dev-005": (("2023.emnlp-main.495", 1, 1585, 1798),),
+        "rarag-dev-001": (("2025.emnlp-main.1738", 1, 717, 906),),
+        "rarag-dev-002": (("2025.emnlp-main.1738", 1, 1219, 1540),),
+        "rarag-dev-003": (("2025.emnlp-main.1738", 1, 1408, 1540),),
+        "rarag-dev-004": (("2025.emnlp-main.1738", 1, 1541, 1724),),
+        "rarag-dev-005": (("2025.emnlp-main.1738", 1, 1725, 1868),),
+        "rarag-dev-006": (
+            ("2025.emnlp-main.1738", 1, 2702, 2815),
+            ("2025.emnlp-main.1738", 1, 3194, 3283),
+        ),
     }
