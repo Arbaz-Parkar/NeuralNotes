@@ -37,10 +37,11 @@ def _case(
     split: str = "dev",
     answerable: bool = True,
     verified: bool = True,
+    question: str = "What does the passage say?",
 ) -> EvaluationCase:
     return EvaluationCase(
         query_id=query_id,
-        question="What does the passage say?",
+        question=question,
         split=split,
         category="single_passage" if answerable else "unanswerable",
         answerable=answerable,
@@ -76,16 +77,19 @@ def test_runner_aggregates_answerable_queries_and_reports_excluded_unanswerables
     None
 ):
     chunks = (_chunk("relevant", "paper-1", 10, 20), _chunk("noise", "paper-2", 0, 10))
-    cases = (_case(), _case("q2", answerable=False))
+    cases = (_case(), _case("q2", answerable=False, question="unknown query"))
     report = evaluate_retrieval(
         cases,
         chunks,
-        lambda _query, _top_k: ["noise", "relevant"],
+        lambda query, _top_k: () if query == "unknown query" else ["noise", "relevant"],
         k_values=(1, 2),
     )
 
     assert report.answerable_query_count == 1
     assert report.excluded_unanswerable_query_count == 1
+    assert report.unanswerable_query_count == 1
+    assert report.unanswerable_empty_result_count == 1
+    assert report.unanswerable_empty_result_rate == 1.0
     assert report.metrics_at_k["2"]["recall"] == 1.0
     assert report.metrics_at_k["2"]["mrr"] == 0.5
     assert report.to_dict()["split"] == "dev"

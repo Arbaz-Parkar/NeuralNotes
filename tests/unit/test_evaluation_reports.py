@@ -62,9 +62,13 @@ def test_report_writer_saves_json_and_markdown_with_run_configuration(tmp_path) 
     assert payload["dataset_version"] == "dev-v1"
     assert payload["retriever"] == {"b": 0.75, "k1": 1.5, "name": "BM25"}
     assert payload["metrics_at_k"]["1"]["recall"] == 1.0
+    assert payload["unanswerable_query_count"] == 0
+    assert payload["unanswerable_empty_result_count"] == 0
+    assert payload["unanswerable_empty_result_rate"] is None
     assert payload["confidence_intervals_at_k"]["1"]["recall"]["lower"] == 1.0
     assert payload["bootstrap"]["seed"] == 0
     assert "one query" in markdown
+    assert "no BM25 matches: 0 / 0 (not applicable)" in markdown
     assert json_path.name.endswith("run-001.json")
 
 

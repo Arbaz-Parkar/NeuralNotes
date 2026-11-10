@@ -60,6 +60,9 @@ def write_evaluation_reports(
         "retriever": {"name": "BM25", "k1": bm25_k1, "b": bm25_b},
         "answerable_query_count": report.answerable_query_count,
         "excluded_unanswerable_query_count": report.excluded_unanswerable_query_count,
+        "unanswerable_query_count": report.unanswerable_query_count,
+        "unanswerable_empty_result_count": report.unanswerable_empty_result_count,
+        "unanswerable_empty_result_rate": report.unanswerable_empty_result_rate,
         "k_values": report.k_values,
         "metrics_at_k": report.metrics_at_k,
         "confidence_intervals_at_k": confidence_intervals,
@@ -92,6 +95,10 @@ def _render_markdown(payload: dict[str, object]) -> str:
     assert isinstance(confidence_intervals, dict)
     bootstrap = payload["bootstrap"]
     assert isinstance(bootstrap, dict)
+    empty_result_rate = payload["unanswerable_empty_result_rate"]
+    empty_result_text = (
+        "not applicable" if empty_result_rate is None else f"{empty_result_rate:.1%}"
+    )
     confidence_percent = bootstrap["confidence_level"] * 100
     lines = [
         f"# Retrieval evaluation — {payload['dataset_version']}",
@@ -106,9 +113,15 @@ def _render_markdown(payload: dict[str, object]) -> str:
         f"- Answerable queries scored: {payload['answerable_query_count']}",
         f"- Unanswerable queries excluded from ranking averages: "
         f"{payload['excluded_unanswerable_query_count']}",
+        f"- Unanswerable queries with no BM25 matches: "
+        f"{payload['unanswerable_empty_result_count']} / "
+        f"{payload['unanswerable_query_count']} ({empty_result_text})",
         f"- Evidence overlap threshold: {payload['evidence_overlap_threshold']}",
         f"- BM25 parameters: `k1={payload['retriever']['k1']}`, "
         f"`b={payload['retriever']['b']}`",
+        "",
+        "The no-match rate measures whether BM25 returned any lexical matches. "
+        "A returned match is not evidence that a passage answers the query.",
         "",
         "## Macro-averaged ranking metrics",
         "",

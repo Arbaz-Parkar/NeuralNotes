@@ -42,6 +42,9 @@ class EvaluationReport:
     k_values: tuple[int, ...]
     metrics_at_k: dict[str, dict[str, float]]
     per_query: tuple[QueryEvaluation, ...]
+    unanswerable_query_count: int = 0
+    unanswerable_empty_result_count: int = 0
+    unanswerable_empty_result_rate: float | None = None
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable representation of this report."""
@@ -108,6 +111,7 @@ def evaluate_retrieval(
         raise ValueError("An evaluation run must use exactly one dataset split.")
 
     answerable = tuple(case for case in selected_cases if case.answerable)
+    unanswerable = tuple(case for case in selected_cases if not case.answerable)
     if not answerable:
         raise ValueError("Evaluation requires at least one verified answerable case.")
 
@@ -146,6 +150,9 @@ def evaluate_retrieval(
         key: {name: value / count for name, value in metrics.items()}
         for key, metrics in totals.items()
     }
+    empty_result_count = sum(
+        not tuple(retrieve(case.question, max_k)) for case in unanswerable
+    )
     return EvaluationReport(
         split=next(iter(splits)),
         answerable_query_count=count,
@@ -155,4 +162,9 @@ def evaluate_retrieval(
         k_values=k_values,
         metrics_at_k=aggregate,
         per_query=tuple(per_query),
+        unanswerable_query_count=len(unanswerable),
+        unanswerable_empty_result_count=empty_result_count,
+        unanswerable_empty_result_rate=(
+            empty_result_count / len(unanswerable) if unanswerable else None
+        ),
     )
