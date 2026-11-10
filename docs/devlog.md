@@ -167,3 +167,12 @@
 - The first paired comparisons exposed a report-schema mismatch: current reports include `relevant_chunk_count`, which the comparison input rejected. Updated the reader to accept this optional field for compatibility with older report records. The comparison tests passed (7), and Ruff lint and formatting checks passed.
 - Reran both paired comparisons successfully. On this five-query smoke sample, Recall@k and HitRate@k were unchanged; MRR and nDCG differences were small and uncertain. These results confirm evaluation and pairing plumbing only; they do not support choosing a chunking strategy. Generated reports remain local and ignored.
 - Next: expand the manually verified evaluation set across additional papers, keeping dev and held-out test questions separated before interpreting strategy comparisons.
+
+## 2026-11-10
+
+- Resumed Phase 4 evaluation work after a break. Confirmed the report compatibility fix and pilot comparison documentation were committed as `4922365`.
+- Inspected page 1 of `2024.emnlp-main.845` with the source inspector. Added six verified development questions with page-local evidence spans covering retrieval-unit examples, proposition definition, retrieval findings, downstream QA findings, and the paper's two research questions.
+- Expanded the committed pilot from five DPR questions to eleven questions across two papers. Updated the dataset regression test and evaluation documentation; the pilot remains too small and narrow for retrieval-quality conclusions.
+- The focused dataset, runner, and comparison tests passed, along with Ruff lint and format checks. Added the Dense X Retrieval paper to the recursive and sentence-window workspaces (261 and 660 chunks, respectively); the fixed-size workspace already contained it.
+- Ran the v0.2, 11-case evaluation in all three workspaces and completed both paired comparisons. Recall@k and HitRate@k were unchanged. At k=5, recursive versus fixed-size had +0.1061 MRR and +0.0790 nDCG; sentence-window versus fixed-size had +0.1061 MRR and +0.0742 nDCG. Intervals touch zero or, for sentence-window Precision@5, span zero. This two-paper development smoke set is still too small to select a strategy.
+- Next: grow the verified set to include questions from additional papers and begin adding answerable/unanswerable coverage before drawing retrieval conclusions.

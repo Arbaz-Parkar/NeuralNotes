@@ -85,12 +85,12 @@ def test_loader_rejects_duplicate_ids_and_empty_verified_split(tmp_path) -> None
         load_cases(path, split="dev")
 
 
-def test_committed_pilot_cases_are_verified_and_point_to_dpr_page_one() -> None:
+def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
     dataset_path = Path(__file__).parents[2] / "data" / "evaluation" / "golden.jsonl"
 
     cases = load_cases(dataset_path, split="dev")
 
-    assert len(cases) == 5
+    assert len(cases) == 11
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -105,15 +105,33 @@ def test_committed_pilot_cases_are_verified_and_point_to_dpr_page_one() -> None:
         "dpr-dev-003",
         "dpr-dev-004",
         "dpr-dev-005",
+        "dxr-dev-001",
+        "dxr-dev-002",
+        "dxr-dev-003",
+        "dxr-dev-004",
+        "dxr-dev-005",
+        "dxr-dev-006",
     }
     assert all(case.verified for case in cases)
     assert {
-        case.query_id: (case.evidence[0].start_char, case.evidence[0].end_char)
+        case.query_id: tuple(
+            (span.document_id, span.page_number, span.start_char, span.end_char)
+            for span in case.evidence
+        )
         for case in cases
     } == {
-        "dpr-dev-001": (753, 944),
-        "dpr-dev-002": (531, 725),
-        "dpr-dev-003": (1008, 1142),
-        "dpr-dev-004": (1601, 1872),
-        "dpr-dev-005": (2177, 2287),
+        "dpr-dev-001": (("2020.emnlp-main.550", 1, 753, 944),),
+        "dpr-dev-002": (("2020.emnlp-main.550", 1, 531, 725),),
+        "dpr-dev-003": (("2020.emnlp-main.550", 1, 1008, 1142),),
+        "dpr-dev-004": (("2020.emnlp-main.550", 1, 1601, 1872),),
+        "dpr-dev-005": (("2020.emnlp-main.550", 1, 2177, 2287),),
+        "dxr-dev-001": (("2024.emnlp-main.845", 1, 659, 799),),
+        "dxr-dev-002": (("2024.emnlp-main.845", 1, 1036, 1221),),
+        "dxr-dev-003": (("2024.emnlp-main.845", 1, 989, 1035),),
+        "dxr-dev-004": (("2024.emnlp-main.845", 1, 1315, 1455),),
+        "dxr-dev-005": (("2024.emnlp-main.845", 1, 1455, 1619),),
+        "dxr-dev-006": (
+            ("2024.emnlp-main.845", 1, 3822, 3913),
+            ("2024.emnlp-main.845", 1, 3914, 4010),
+        ),
     }

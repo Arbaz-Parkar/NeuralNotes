@@ -14,9 +14,9 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 ## Evaluation design still to build
 
-The current results are retrieval smoke checks, not quality findings. Five manually verified development questions now exist in `data/evaluation/golden.jsonl`; this small pilot from one paper is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
+The current results are retrieval smoke checks, not quality findings. Eleven manually verified development questions now exist in `data/evaluation/golden.jsonl`, spanning two papers; this small pilot is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs a larger human-verified question set, a held-out test split, and a tiny CI regression fixture. Do not report a strategy as better based on this five-question, single-paper pilot, chunk counts, or search smoke results.
+The evaluator still needs a larger human-verified question set, a held-out test split, and a tiny CI regression fixture. Do not report a strategy as better based on this eleven-question pilot, chunk counts, or search smoke results.
 
 ## Current dataset record
 
@@ -52,7 +52,7 @@ The example is schema-shaped candidate content only; its question, answer, and o
 
 ### 8 November pilot smoke run
 
-The BM25 evaluator completed on five verified DPR development questions in the fixed-size, recursive, and sentence-window workspaces, and both paired comparisons completed. Recall@k and HitRate@k were unchanged. At k=5, paired MRR differences were +0.1333 for both candidates; nDCG differences were +0.0839 for recursive and +0.1000 for sentence-window. These intervals are based on only five queries from one paper and are too unstable to select a strategy. The run confirms report generation and query pairing only. Generated reports remain in ignored local storage.
+The BM25 evaluator completed on the five verified DPR development questions in the fixed-size, recursive, and sentence-window workspaces, and both paired comparisons completed before the second paper was labeled. Recall@k and HitRate@k were unchanged. At k=5, paired MRR differences were +0.1333 for both candidates; nDCG differences were +0.0839 for recursive and +0.1000 for sentence-window. These intervals are based on only five queries from one paper and are too unstable to select a strategy. The run confirms report generation and query pairing only. Generated reports remain in ignored local storage. The dataset now has eleven verified development questions across two papers; rerun the comparisons under a new dataset version before using them even as exploratory signals.
 
 `python -m neuralnotes.evaluation.comparison` reads two JSON evaluation run records and pairs their per-query metric values by query id. It rejects different dataset versions, splits, cutoffs, or query sets. Each interval estimates candidate minus baseline, so positive differences favor the candidate. The comparison does not tune parameters and should use `dev` for iteration; keep the held-out `test` split untouched until the final confirmation run.
 
@@ -64,6 +64,10 @@ The BM25 evaluator completed on five verified DPR development questions in the f
 ```
 
 The command writes timestamped JSON and Markdown summaries with the paired sample count, confidence level, resample count, and seed. A confidence interval spanning zero does not establish a difference; small samples remain unstable even when an interval does not span zero.
+
+## 10 November pilot smoke run — v0.2
+
+The 11 verified development cases across the DPR and Dense X Retrieval papers completed in the fixed-size, recursive, and sentence-window workspaces. Both paired comparisons ran with 2,000 resamples. Recall@k and HitRate@k were unchanged. At k=5, recursive versus fixed-size had +0.1061 MRR (95% interval [0.0000, 0.2576]) and +0.0790 nDCG ([0.0000, 0.1916]); sentence-window versus fixed-size had +0.1061 MRR ([0.0000, 0.2576]) and +0.0742 nDCG ([0.0000, 0.1771]). The sentence-window Precision@5 difference was +0.0727 with interval [-0.0364, 0.2000]. These small, development-only results are a smoke check and do not establish a better strategy. Reports were generated locally under dataset version `dpr-pilot-v0.2` and are not committed.
 
 ## Local BM25 command
 
@@ -78,6 +82,6 @@ The CLI loads chunks from exactly one PostgreSQL workspace, builds an in-memory 
     --output-dir .\data\processed\evaluations
 ```
 
-Only use a dataset version after manually checking the included questions and spans against the source pages. The example path above is a future location; the project does not yet contain a human-verified golden dataset. Reports explicitly state that a single run without confidence intervals cannot establish that one configuration is better. The current CLI supports BM25 and one workspace per run, making it possible to compare the three separately ingested chunking workspaces once verified labels exist.
+Only use a dataset version after checking the included questions and spans against the source pages. The committed dataset currently contains eleven verified `dev` cases and no held-out `test` cases. Reports include confidence intervals, but these are not enough to establish a winner from such a small and narrow sample. The current CLI supports BM25 and one workspace per run, making it possible to compare the three separately ingested chunking workspaces as the dataset grows.
 
 See [evaluation labeling](evaluation_labeling.md) for the page inspector, evidence review procedure, and dev/test split rules.
