@@ -253,12 +253,35 @@ def test_committed_test_cases_are_verified_and_point_to_source_pages() -> None:
         "rarag-test-003": (("2025.emnlp-main.1738", 2, 2852, 3048),),
     }
 
-    assert len(cases) == 12
-    assert all(case.verified and case.answerable for case in cases)
+    answerable_cases = tuple(case for case in cases if case.answerable)
+    unanswerable_cases = tuple(case for case in cases if not case.answerable)
+
+    assert len(cases) == 24
+    assert len(answerable_cases) == 12
+    assert len(unanswerable_cases) == 12
+    assert all(case.verified for case in cases)
+    assert all(
+        case.category == "unanswerable" and not case.evidence
+        for case in unanswerable_cases
+    )
+    assert {case.query_id for case in unanswerable_cases} == {
+        "unans-test-001",
+        "unans-test-002",
+        "unans-test-003",
+        "unans-test-004",
+        "unans-test-005",
+        "unans-test-006",
+        "unans-test-007",
+        "unans-test-008",
+        "unans-test-009",
+        "unans-test-010",
+        "unans-test-011",
+        "unans-test-012",
+    }
     assert {
         case.query_id: tuple(
             (span.document_id, span.page_number, span.start_char, span.end_char)
             for span in case.evidence
         )
-        for case in cases
+        for case in answerable_cases
     } == expected_spans
