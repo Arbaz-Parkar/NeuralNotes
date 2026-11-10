@@ -14,9 +14,9 @@ An empty relevance set scores zero for every metric. This avoids silently treati
 
 ## Evaluation design still to build
 
-The current results are retrieval smoke checks, not quality findings. Eighteen manually verified development questions now exist in `data/evaluation/golden.jsonl`, spanning three papers; this small pilot is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
+The current results are retrieval smoke checks, not quality findings. Thirty-five manually verified development questions now exist in `data/evaluation/golden.jsonl`, spanning five papers and multiple pages; this small pilot is not a usable benchmark. Expand the verified JSONL question set with evidence recorded by document id, page, and character span. Convert those spans to relevant chunk ids at evaluation time, using a documented overlap threshold, so labels remain usable when chunk boundaries change. Keep development and held-out test questions separate; use the development split for iteration and do not tune against the test split.
 
-The evaluator still needs a larger human-verified question set, a held-out test split, and a tiny CI regression fixture. Do not report a strategy as better based on this eighteen-question pilot, chunk counts, or search smoke results.
+The evaluator still needs a larger human-verified question set, a held-out test split, and a tiny CI regression fixture. Do not report a strategy as better based on this thirty-five-question pilot, chunk counts, or search smoke results.
 
 ## Current dataset record
 
@@ -72,6 +72,10 @@ The 11 verified development cases across the DPR and Dense X Retrieval papers co
 ## 10 November pilot comparison — v0.3
 
 After adding seven R2AG cases, the 18-question development set ran in all three workspaces. In the recursive-versus-fixed comparison, Recall@5 was unchanged; Recall@10 increased by 0.0556 (95% interval [0.0000, 0.1389]) and Recall@20 by 0.0278 ([0.0000, 0.0833]). MRR differences were near zero, and their intervals included zero. In sentence-window versus fixed-size, Recall@5 decreased by 0.1296 ([-0.2778, -0.0278]) and Recall@20 by 0.0648 ([-0.1296, -0.0185]); MRR and nDCG intervals included zero. These are observed results for 18 answerable questions drawn only from the first page of three papers. They are useful for debugging and motivating a larger study, but cannot establish a general chunking winner. The reports remain local under `data/processed/evaluations/`.
+
+## 10 November pilot comparison — v0.4
+
+The expanded set contains 35 verified, answerable development questions across five papers and was evaluated in all three workspaces. The paired sentence-window comparison showed higher precision than fixed-size at k=5 (+0.0571; 95% interval [0.0057, 0.1143]), k=10 (+0.0343; [0.0029, 0.0657]), and k=20 (+0.0157; [0.0014, 0.0300]), alongside lower Recall@20 (-0.1381; [-0.2429, -0.0476]). Its MRR and nDCG intervals included zero. Recursive versus fixed-size had +0.0114 Precision@10 ([0.0029, 0.0229]) and +0.0857 Recall@10 ([-0.0004, 0.2000]); MRR and nDCG intervals included zero. These are pilot estimates from 35 answerable questions across six inspected pages, with no unanswerable or held-out test cases. They show a precision–recall tradeoff in this sample and do not establish a generally better strategy. Reports remain local under `data/processed/evaluations/`.
 
 ## Local BM25 command
 

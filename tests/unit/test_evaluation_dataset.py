@@ -90,7 +90,7 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
 
     cases = load_cases(dataset_path, split="dev")
 
-    assert len(cases) == 18
+    assert len(cases) == 35
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -118,6 +118,23 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "r2ag-dev-005",
         "r2ag-dev-006",
         "r2ag-dev-007",
+        "bergen-dev-001",
+        "bergen-dev-002",
+        "bergen-dev-003",
+        "bergen-dev-004",
+        "bergen-dev-005",
+        "ragas-dev-001",
+        "ragas-dev-002",
+        "ragas-dev-003",
+        "ragas-dev-004",
+        "ragas-dev-005",
+        "ragas-dev-006",
+        "dxr-dev-007",
+        "dxr-dev-008",
+        "dxr-dev-009",
+        "dxr-dev-010",
+        "dxr-dev-011",
+        "dxr-dev-012",
     }
     assert all(case.verified for case in cases)
     assert {
@@ -148,4 +165,21 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "r2ag-dev-005": (("2024.findings-emnlp.678", 1, 1515, 1605),),
         "r2ag-dev-006": (("2024.findings-emnlp.678", 1, 1606, 1703),),
         "r2ag-dev-007": (("2024.findings-emnlp.678", 1, 1704, 1846),),
+        "bergen-dev-001": (("2024.findings-emnlp.449", 1, 775, 869),),
+        "bergen-dev-002": (("2024.findings-emnlp.449", 1, 870, 1003),),
+        "bergen-dev-003": (("2024.findings-emnlp.449", 1, 1004, 1229),),
+        "bergen-dev-004": (("2024.findings-emnlp.449", 1, 1230, 1370),),
+        "bergen-dev-005": (("2024.findings-emnlp.449", 1, 2787, 2942),),
+        "ragas-dev-001": (("2024.eacl-demo.16", 1, 531, 700),),
+        "ragas-dev-002": (("2024.eacl-demo.16", 1, 1013, 1251),),
+        "ragas-dev-003": (("2024.eacl-demo.16", 1, 1252, 1427),),
+        "ragas-dev-004": (("2024.eacl-demo.16", 1, 3416, 3615),),
+        "ragas-dev-005": (("2024.eacl-demo.16", 1, 3818, 4061),),
+        "ragas-dev-006": (("2024.eacl-demo.16", 1, 4062, 4251),),
+        "dxr-dev-007": (("2024.emnlp-main.845", 2, 1691, 1990),),
+        "dxr-dev-008": (("2024.emnlp-main.845", 2, 1991, 2447),),
+        "dxr-dev-009": (("2024.emnlp-main.845", 2, 3098, 3321),),
+        "dxr-dev-010": (("2024.emnlp-main.845", 2, 3322, 3566),),
+        "dxr-dev-011": (("2024.emnlp-main.845", 2, 3916, 4069),),
+        "dxr-dev-012": (("2024.emnlp-main.845", 2, 4413, 4542),),
     }
