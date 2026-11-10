@@ -231,3 +231,34 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
             ("2025.emnlp-main.1738", 1, 3194, 3283),
         ),
     }
+
+
+def test_committed_test_cases_are_verified_and_point_to_source_pages() -> None:
+    dataset_path = Path(__file__).parents[2] / "data" / "evaluation" / "golden.jsonl"
+
+    cases = load_cases(dataset_path, split="test")
+
+    expected_spans = {
+        "ragbp-test-001": (("2024.emnlp-main.981", 2, 209, 308),),
+        "ragbp-test-002": (("2024.emnlp-main.981", 2, 406, 551),),
+        "ragbp-test-003": (("2024.emnlp-main.981", 2, 4278, 4314),),
+        "mirage-test-001": (("2025.findings-naacl.157", 2, 4015, 4158),),
+        "mirage-test-002": (("2025.findings-naacl.157", 2, 4476, 4775),),
+        "mirage-test-003": (("2025.findings-naacl.157", 2, 4789, 4879),),
+        "flare-test-001": (("2023.emnlp-main.495", 2, 2445, 2546),),
+        "flare-test-002": (("2023.emnlp-main.495", 2, 2853, 3007),),
+        "flare-test-003": (("2023.emnlp-main.495", 2, 3060, 3270),),
+        "rarag-test-001": (("2025.emnlp-main.1738", 2, 98, 256),),
+        "rarag-test-002": (("2025.emnlp-main.1738", 2, 1819, 1915),),
+        "rarag-test-003": (("2025.emnlp-main.1738", 2, 2852, 3048),),
+    }
+
+    assert len(cases) == 12
+    assert all(case.verified and case.answerable for case in cases)
+    assert {
+        case.query_id: tuple(
+            (span.document_id, span.page_number, span.start_char, span.end_char)
+            for span in case.evidence
+        )
+        for case in cases
+    } == expected_spans
