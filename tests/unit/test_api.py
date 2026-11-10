@@ -58,13 +58,18 @@ def test_search_endpoint_returns_only_requested_workspace_results(
 
         app.dependency_overrides[get_db_session] = override_session
         with TestClient(app) as client:
-            response = client.post(
-                "/v1/search",
-                json={
-                    "workspace_id": str(first_workspace_id),
-                    "query": "evidence",
-                    "top_k": 3,
-                },
+            payload = {
+                "workspace_id": str(first_workspace_id),
+                "query": "evidence",
+                "top_k": 3,
+            }
+            response = client.post("/v1/search", json=payload)
+            result_score = response.json()["results"][0]["score"]
+            threshold_response = client.post(
+                "/v1/search", json={**payload, "min_score": result_score}
+            )
+            abstained_response = client.post(
+                "/v1/search", json={**payload, "min_score": result_score + 1.0}
             )
 
         assert response.status_code == 200
@@ -77,6 +82,16 @@ def test_search_endpoint_returns_only_requested_workspace_results(
         assert results[0]["start_char"] == 0
         assert results[0]["end_char"] == len("Dense passage retrieval finds evidence.")
         assert results[0]["score"] > 0
+        assert response.json()["abstained"] is False
+        assert response.json()["min_score"] is None
+        assert threshold_response.status_code == 200
+        assert len(threshold_response.json()["results"]) == 1
+        assert threshold_response.json()["abstained"] is False
+        assert threshold_response.json()["min_score"] == result_score
+        assert abstained_response.status_code == 200
+        assert abstained_response.json()["results"] == []
+        assert abstained_response.json()["abstained"] is True
+        assert abstained_response.json()["min_score"] == result_score + 1.0
     finally:
         app.dependency_overrides.pop(get_db_session, None)
         engine.dispose()
@@ -87,6 +102,20 @@ def test_search_endpoint_rejects_blank_query() -> None:
         response = client.post(
             "/v1/search",
             json={"workspace_id": str(uuid4()), "query": "   "},
+        )
+
+    assert response.status_code == 422
+
+
+def test_search_endpoint_rejects_negative_minimum_score() -> None:
+    with TestClient(app) as client:
+        response = client.post(
+            "/v1/search",
+            json={
+                "workspace_id": str(uuid4()),
+                "query": "evidence",
+                "min_score": -0.1,
+            },
         )
 
     assert response.status_code == 422

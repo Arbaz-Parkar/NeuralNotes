@@ -25,6 +25,7 @@ class SearchRequest(BaseModel):
     workspace_id: UUID
     query: str = Field(min_length=1, max_length=2_000)
     top_k: int = Field(default=5, ge=1, le=50)
+    min_score: float | None = Field(default=None, ge=0.0)
 
     @field_validator("query")
     @classmethod
@@ -52,6 +53,8 @@ class SearchResponse(BaseModel):
     """Ranked passage results for a search request."""
 
     results: list[SearchResult]
+    abstained: bool
+    min_score: float | None
 
 
 @asynccontextmanager
@@ -89,6 +92,8 @@ def search_workspace(
     """Return the highest-scoring BM25 passages from the requested workspace."""
     index = build_workspace_bm25_index(session, request.workspace_id)
     hits = index.search(request.query, top_k=request.top_k)
+    if request.min_score is not None:
+        hits = tuple(hit for hit in hits if hit.score >= request.min_score)
     return SearchResponse(
         results=[
             SearchResult(
@@ -101,5 +106,7 @@ def search_workspace(
                 score=hit.score,
             )
             for hit in hits
-        ]
+        ],
+        abstained=request.min_score is not None and not hits,
+        min_score=request.min_score,
     )
