@@ -89,8 +89,12 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
     dataset_path = Path(__file__).parents[2] / "data" / "evaluation" / "golden.jsonl"
 
     cases = load_cases(dataset_path, split="dev")
+    answerable_cases = tuple(case for case in cases if case.answerable)
+    unanswerable_cases = tuple(case for case in cases if not case.answerable)
 
-    assert len(cases) == 56
+    assert len(cases) == 62
+    assert len(answerable_cases) == 56
+    assert len(unanswerable_cases) == 6
     assert cases[0].query_id == "dpr-dev-001"
     assert cases[0].verified is True
     assert cases[0].evidence[0].document_id == "2020.emnlp-main.550"
@@ -156,14 +160,28 @@ def test_committed_pilot_cases_are_verified_and_point_to_source_pages() -> None:
         "rarag-dev-004",
         "rarag-dev-005",
         "rarag-dev-006",
+        "unans-dev-001",
+        "unans-dev-002",
+        "unans-dev-003",
+        "unans-dev-004",
+        "unans-dev-005",
+        "unans-dev-006",
     }
     assert all(case.verified for case in cases)
+    assert {case.query_id for case in unanswerable_cases} == {
+        "unans-dev-001",
+        "unans-dev-002",
+        "unans-dev-003",
+        "unans-dev-004",
+        "unans-dev-005",
+        "unans-dev-006",
+    }
     assert {
         case.query_id: tuple(
             (span.document_id, span.page_number, span.start_char, span.end_char)
             for span in case.evidence
         )
-        for case in cases
+        for case in answerable_cases
     } == {
         "dpr-dev-001": (("2020.emnlp-main.550", 1, 753, 944),),
         "dpr-dev-002": (("2020.emnlp-main.550", 1, 531, 725),),
@@ -251,26 +269,26 @@ def test_committed_test_cases_are_verified_and_point_to_source_pages() -> None:
         "rarag-test-001": (("2025.emnlp-main.1738", 2, 98, 256),),
         "rarag-test-002": (("2025.emnlp-main.1738", 2, 1819, 1915),),
         "rarag-test-003": (("2025.emnlp-main.1738", 2, 2852, 3048),),
+        "ragbp-test-004": (("2024.emnlp-main.981", 2, 2976, 3070),),
+        "ragbp-test-005": (("2024.emnlp-main.981", 2, 3118, 3162),),
+        "mirage-test-004": (("2025.findings-naacl.157", 2, 4360, 4409),),
+        "flare-test-004": (("2023.emnlp-main.495", 2, 1625, 1679),),
+        "rarag-test-004": (("2025.emnlp-main.1738", 2, 2111, 2256),),
+        "rarag-test-005": (("2025.emnlp-main.1738", 2, 650, 957),),
     }
 
     answerable_cases = tuple(case for case in cases if case.answerable)
     unanswerable_cases = tuple(case for case in cases if not case.answerable)
 
     assert len(cases) == 24
-    assert len(answerable_cases) == 12
-    assert len(unanswerable_cases) == 12
+    assert len(answerable_cases) == 18
+    assert len(unanswerable_cases) == 6
     assert all(case.verified for case in cases)
     assert all(
         case.category == "unanswerable" and not case.evidence
         for case in unanswerable_cases
     )
     assert {case.query_id for case in unanswerable_cases} == {
-        "unans-test-001",
-        "unans-test-002",
-        "unans-test-003",
-        "unans-test-004",
-        "unans-test-005",
-        "unans-test-006",
         "unans-test-007",
         "unans-test-008",
         "unans-test-009",
