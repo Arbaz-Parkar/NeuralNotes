@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
+
 from neuralnotes.chunking import Chunk
 from neuralnotes.evaluation import EvaluationCase, cli
 
@@ -85,8 +87,15 @@ def test_cli_builds_workspace_index_and_writes_versioned_outputs(
     assert len(list((tmp_path / "reports").glob("*.md"))) == 1
 
 
-def test_cli_can_evaluate_hybrid_retrieval_with_cross_encoder(
-    tmp_path: Path, monkeypatch
+@pytest.mark.parametrize(
+    ("retrieval_method", "retriever_name"),
+    (("hybrid", "BM25 + dense RRF"), ("dense", "Dense")),
+)
+def test_cli_can_evaluate_dense_or_hybrid_retrieval_with_cross_encoder(
+    tmp_path: Path,
+    monkeypatch,
+    retrieval_method: str,
+    retriever_name: str,
 ) -> None:
     workspace_id = uuid4()
     chunk = Chunk(
@@ -169,7 +178,7 @@ def test_cli_can_evaluate_hybrid_retrieval_with_cross_encoder(
             "--k-values",
             "1",
             "--retrieval-method",
-            "hybrid",
+            retrieval_method,
             "--reranker-model",
             "test-reranker",
             "--reranker-candidate-count",
@@ -180,7 +189,7 @@ def test_cli_can_evaluate_hybrid_retrieval_with_cross_encoder(
     report_path = next((tmp_path / "reports").glob("*.json"))
     payload = json.loads(report_path.read_text(encoding="utf-8"))
     assert result == 0
-    assert payload["retriever"]["name"] == "BM25 + dense RRF"
+    assert payload["retriever"]["name"] == retriever_name
     assert payload["reranker"] == {
         "model": "test-reranker",
         "candidate_count": 1,

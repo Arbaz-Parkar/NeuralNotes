@@ -43,9 +43,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--b", type=float, default=0.75)
     parser.add_argument(
         "--retrieval-method",
-        choices=("bm25", "hybrid"),
+        choices=("bm25", "dense", "hybrid"),
         default="bm25",
-        help="Evaluate lexical BM25 or BM25+dense reciprocal-rank fusion.",
+        help="Choose BM25, dense vector search, or hybrid retrieval.",
     )
     parser.add_argument("--rrf-constant", type=float, default=60.0)
     parser.add_argument(
@@ -66,22 +66,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             chunks = load_workspace_chunks(session, args.workspace_id)
             embedded_chunks = (
                 load_workspace_chunk_embeddings(session, args.workspace_id)
-                if args.retrieval_method == "hybrid"
+                if args.retrieval_method in {"dense", "hybrid"}
                 else ()
             )
             embedding_model = (
                 get_workspace_embedding_model(session, args.workspace_id)
-                if args.retrieval_method == "hybrid"
+                if args.retrieval_method in {"dense", "hybrid"}
                 else None
             )
     finally:
         engine.dispose()
 
-    if args.retrieval_method == "hybrid" and (
+    if args.retrieval_method in {"dense", "hybrid"} and (
         not embedded_chunks or embedding_model is None
     ):
         raise ValueError(
-            "Hybrid retrieval requires stored chunk embeddings and a model."
+            "Dense and hybrid retrieval require stored chunk embeddings and a model."
         )
 
     reranker = (
@@ -115,11 +115,18 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     def retrieve(query: str, top_k: int) -> tuple[str, ...]:
         pool_k = candidate_k if reranker is not None else top_k
-        if dense_index is None or embedder is None:
+        if args.retrieval_method == "bm25":
             candidate_ids = tuple(
                 hit.chunk.chunk_id for hit in index.search(query, top_k=pool_k)
             )
+        elif args.retrieval_method == "dense":
+            assert dense_index is not None and embedder is not None
+            candidate_ids = tuple(
+                hit.chunk.chunk_id
+                for hit in dense_index.search(embedder.embed_query(query), top_k=pool_k)
+            )
         else:
+            assert dense_index is not None and embedder is not None
             lexical_ids = tuple(
                 hit.chunk.chunk_id for hit in index.search(query, top_k=candidate_k)
             )

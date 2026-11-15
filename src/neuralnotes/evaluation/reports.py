@@ -67,8 +67,12 @@ def write_evaluation_reports(
             "rrf_constant": rrf_constant,
             "embedding_model": embedding_model,
         }
+    elif retrieval_method == "dense":
+        if not embedding_model:
+            raise ValueError("Dense reports require the embedding model name.")
+        retriever = {"name": "Dense", "embedding_model": embedding_model}
     elif retrieval_method != "bm25":
-        raise ValueError("retrieval_method must be 'bm25' or 'hybrid'.")
+        raise ValueError("retrieval_method must be 'bm25', 'dense', or 'hybrid'.")
 
     latency_values = sorted(item.retrieval_latency_ms for item in report.per_query)
     reranker = None
@@ -160,7 +164,11 @@ def _render_markdown(payload: dict[str, object]) -> str:
         f"{payload['unanswerable_query_count']} ({empty_result_text})",
         f"- Evidence overlap threshold: {payload['evidence_overlap_threshold']}",
         f"- Retriever: `{retriever['name']}`",
-        f"- BM25 parameters: `k1={retriever['k1']}`, `b={retriever['b']}`",
+        *(
+            [f"- BM25 parameters: `k1={retriever['k1']}`, `b={retriever['b']}`"]
+            if "k1" in retriever
+            else []
+        ),
         f"- Retrieval latency (model warm): p50 `{latency['p50']:.2f} ms`, "
         f"p95 `{latency['p95']:.2f} ms` across {latency['query_count']} queries",
         "",
