@@ -23,6 +23,9 @@ def write_evaluation_reports(
     bm25_k1: float,
     bm25_b: float,
     chunk_count: int,
+    retrieval_method: str = "bm25",
+    rrf_constant: float | None = None,
+    embedding_model: str | None = None,
     confidence_level: float = 0.95,
     bootstrap_resamples: int = 2_000,
     bootstrap_seed: int = 0,
@@ -49,6 +52,22 @@ def write_evaluation_reports(
                 seed=bootstrap_seed,
             )
             confidence_intervals[key][metric_name] = asdict(interval)
+    retriever = {"name": "BM25", "k1": bm25_k1, "b": bm25_b}
+    if retrieval_method == "hybrid":
+        if rrf_constant is None:
+            raise ValueError("Hybrid reports require an RRF rank constant.")
+        if not embedding_model:
+            raise ValueError("Hybrid reports require the embedding model name.")
+        retriever = {
+            "name": "BM25 + dense RRF",
+            "k1": bm25_k1,
+            "b": bm25_b,
+            "rrf_constant": rrf_constant,
+            "embedding_model": embedding_model,
+        }
+    elif retrieval_method != "bm25":
+        raise ValueError("retrieval_method must be 'bm25' or 'hybrid'.")
+
     payload = {
         "report_schema_version": 2,
         "run_id": run_id,
@@ -57,7 +76,7 @@ def write_evaluation_reports(
         "split": report.split,
         "chunk_count": chunk_count,
         "evidence_overlap_threshold": evidence_overlap,
-        "retriever": {"name": "BM25", "k1": bm25_k1, "b": bm25_b},
+        "retriever": retriever,
         "answerable_query_count": report.answerable_query_count,
         "excluded_unanswerable_query_count": report.excluded_unanswerable_query_count,
         "unanswerable_query_count": report.unanswerable_query_count,
@@ -95,6 +114,8 @@ def _render_markdown(payload: dict[str, object]) -> str:
     assert isinstance(confidence_intervals, dict)
     bootstrap = payload["bootstrap"]
     assert isinstance(bootstrap, dict)
+    retriever = payload["retriever"]
+    assert isinstance(retriever, dict)
     empty_result_rate = payload["unanswerable_empty_result_rate"]
     empty_result_text = (
         "not applicable" if empty_result_rate is None else f"{empty_result_rate:.1%}"
@@ -117,8 +138,8 @@ def _render_markdown(payload: dict[str, object]) -> str:
         f"{payload['unanswerable_empty_result_count']} / "
         f"{payload['unanswerable_query_count']} ({empty_result_text})",
         f"- Evidence overlap threshold: {payload['evidence_overlap_threshold']}",
-        f"- BM25 parameters: `k1={payload['retriever']['k1']}`, "
-        f"`b={payload['retriever']['b']}`",
+        f"- Retriever: `{retriever['name']}`",
+        f"- BM25 parameters: `k1={retriever['k1']}`, `b={retriever['b']}`",
         "",
         "The no-match rate measures whether BM25 returned any lexical matches. "
         "A returned match is not evidence that a passage answers the query.",
@@ -128,6 +149,9 @@ def _render_markdown(payload: dict[str, object]) -> str:
         "| k | Metric | Mean | Percentile confidence interval |",
         "| ---: | --- | ---: | ---: |",
     ]
+    if "rrf_constant" in retriever:
+        lines.insert(14, f"- RRF rank constant: `{retriever['rrf_constant']}`")
+        lines.insert(15, f"- Embedding model: `{retriever['embedding_model']}`")
     for key, values in metrics_at_k.items():
         for metric_name, mean_value in values.items():
             interval = confidence_intervals[key][metric_name]

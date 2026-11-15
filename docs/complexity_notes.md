@@ -40,3 +40,29 @@ the requesting workspace is authorized to search. The initial unit tests check
 the scoring formula, case-folded tokenization, top-k behavior, stable tie order,
 and invalid inputs. Performance and parity with a reference BM25 library have
 not been measured; comparison is planned for the retrieval ablation phase.
+
+## Dense cosine retrieval
+
+Dense retrieval stores one embedding vector per chunk. For a query vector `q`
+and chunk vector `v`, the index ranks by cosine similarity:
+
+```text
+cosine(q, v) = dot(q, v) / (norm(q) * norm(v))
+```
+
+For `D` chunks and embedding dimension `E`, this in-memory baseline uses
+`O(D * E)` space and `O(D * E + D log K)` search time. It scores every chunk
+and sorts the scores; the PostgreSQL HNSW index is not used by this baseline.
+This suits the current small local corpus, but should be replaced by database
+approximate-nearest-neighbor search as the corpus grows.
+
+## Reciprocal rank fusion
+
+For each unique chunk in each ranked list, reciprocal rank fusion adds
+`1 / (c + rank)` using one-based ranks and a configurable constant `c`. It
+does not compare BM25 scores with cosine scores; it combines rank positions.
+Duplicates within one list contribute only their first position, while results
+appearing in multiple lists accumulate evidence. For `L` lists with at most `R`
+entries each, fusion takes `O(L * R + U log U)` time and `O(U)` space, where
+`U` is the number of unique chunk ids. First-seen order breaks exact score ties
+deterministically.

@@ -92,6 +92,7 @@ def evaluate_retrieval(
     *,
     k_values: tuple[int, ...] = (5, 10, 20),
     minimum_evidence_overlap: float = 0.5,
+    unanswerable_retrieve: Retriever | None = None,
 ) -> EvaluationReport:
     """Score verified cases and macro-average metrics over answerable questions."""
     if not cases:
@@ -150,8 +151,9 @@ def evaluate_retrieval(
         key: {name: value / count for name, value in metrics.items()}
         for key, metrics in totals.items()
     }
+    no_match_retriever = unanswerable_retrieve or retrieve
     empty_result_count = sum(
-        not tuple(retrieve(case.question, max_k)) for case in unanswerable
+        not tuple(no_match_retriever(case.question, max_k)) for case in unanswerable
     )
     return EvaluationReport(
         split=next(iter(splits)),
