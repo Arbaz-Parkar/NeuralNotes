@@ -184,3 +184,13 @@
 - Ingested BERGEN and RAGAs into all three workspaces: fixed-size produced 353 and 109 chunks; recursive produced 393 and 116; sentence-window produced 792 and 304.
 - Ran v0.4 evaluation and paired comparisons on all 35 answerable development cases. Sentence-window had higher precision at k=5/10/20 but lower Recall@20 than fixed-size; its MRR and nDCG intervals included zero. Recursive's MRR and nDCG intervals also included zero. Results are limited to five papers and six inspected pages, with no unanswerable or held-out test questions.
 - Updated the evaluation notes with v0.4 results. Next: add unanswerable cases and develop a held-out split while continuing to expand the verified question set.
+
+## 2026-11-15
+
+- Resumed Phase 5 retrieval ablations after a short break. Added dense cosine retrieval over stored workspace embeddings and reciprocal rank fusion, then exposed BM25 and hybrid modes in the evaluation CLI. Added optional cross-encoder reranking over a bounded candidate pool and warm-model per-query latency reporting.
+- Focused retrieval and evaluation checks passed after correcting the reranker test fake's batch-size expectation and applying Ruff's formatting suggestions.
+- On the 56-query dev split, cross-encoder reranking improved MRR@10, nDCG@10, and Recall@10 for all three chunking strategies. Paired 95% intervals were above zero for these within-strategy comparisons. Warm-model p50 latency rose from 4–9 ms with BM25 to 477–510 ms with BM25 reranking.
+- Dense RRF alone underperformed BM25 for the tested constant (60) and embedding model. Hybrid reranking had no clear advantage over BM25 reranking for fixed-size or sentence-window chunks; recursive hybrid reranking was lower on MRR and nDCG in paired dev comparisons.
+- Confirmed the fixed-size BM25-reranker candidate once on the 18 answerable test queries. At k=10, candidate-minus-baseline MRR was -0.0295 (95% CI [-0.1235, +0.0538]), nDCG was -0.0261 ([-0.1002, +0.0473]), and recall was -0.0278 ([-0.1667, +0.0833]). All intervals include zero; this small test does not confirm a gain. No tuning was performed on test.
+- Added `docs/experiments/ablation_study.md` with the measured retrieval results, latency trade-offs, held-out confirmation, and remaining Phase 5 work. Recommendation: keep BM25 as the default and leave cross-encoder reranking optional.
+- Next: complete or explicitly scope the remaining ablations: BM25 k1/b, RRF constant, second embedding model, query transformation, and the LangChain baseline; then finalize the Phase 5 ADR and technical report.
