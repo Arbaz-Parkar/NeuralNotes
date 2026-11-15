@@ -74,11 +74,20 @@ The fixed-size BM25-reranked candidate was compared once against fixed-size BM25
 
 All three intervals include zero. The test sample does not confirm the development improvement and also does not establish that reranking is worse. No configuration was retuned using these test results.
 
+## BM25 and RRF parameter sweeps — development only
+
+The fixed-size workspace was used for a coarse BM25 grid sweep on the 56 development questions. The reference was `k1=1.5, b=0.75`; the grid evaluated `k1` in {0.8, 1.2, 1.5, 2.0} and `b` in {0.25, 0.5, 0.75, 1.0}. Each non-default configuration was compared to the reference with paired 95% bootstrap intervals.
+
+No configuration showed a clear improvement in MRR@10 or nDCG@10. The largest positive observed differences were at `k1=0.8, b=1.0`: MRR +0.0079 (95% CI [-0.0360, +0.0536]), nDCG +0.0142 ([-0.0155, +0.0471]), and recall +0.0268 ([0.0000, +0.0714]). The MRR and nDCG intervals span zero. Other settings with slightly positive averages also had intervals spanning zero. Several more extreme settings significantly lowered MRR, including `k1=0.8, b=0.25` (-0.0298, [-0.0654, -0.0005]) and `k1=2.0, b=1.0` (-0.0292, [-0.0585, -0.0065]). The existing BM25 defaults remain `k1=1.5, b=0.75`.
+
+The RRF sweep held BM25 parameters and the embedding model fixed, comparing constants 20, 40, 80, and 100 against 60. RRF 20 had small positive differences in MRR (+0.0065, 95% CI [-0.0063, +0.0202]), nDCG (+0.0101, [-0.0103, +0.0334]), and recall (+0.0268, [-0.0357, +0.0982]); all intervals span zero. RRF 40 was nearly unchanged. RRF 80 had small negative differences with intervals touching or spanning zero. RRF 100 significantly reduced MRR (-0.0098, [-0.0189, -0.0026]) and nDCG (-0.0155, [-0.0307, -0.0027]). Retain RRF 60 as a stable reference; the sweep does not establish that it is optimal.
+
 ## Decision and limitations
 
 - Keep workspace-scoped BM25 as the default retrieval behavior.
+- Retain BM25 `k1=1.5, b=0.75` and RRF constant 60; the fixed-size dev sweeps did not show a reliable improvement over these references.
 - Keep the cross-encoder available as an optional evaluation setting; its development gains came with roughly 0.48–0.51 second p50 retrieval latency for BM25 reranking, and the held-out set was inconclusive.
 - Do not enable dense RRF by default based on the current constant and embedding model. The tested hybrid baseline underperformed BM25 and added latency.
 - Treat chunk-strategy comparisons as exploratory. The sample contains 56 development and 18 test answerable queries across a small paper corpus; confidence intervals quantify query resampling uncertainty, not corpus diversity.
 
-This is a partial Phase 5 report. BM25 parameter sweeps, an RRF-constant sweep, a second embedding-model comparison, query transformation, and the LangChain baseline remain unmeasured. The requested full ablation report should not be considered complete until those planned comparisons are either run or explicitly scoped out with a documented rationale.
+This is a partial Phase 5 report. BM25 and RRF sweeps cover only the fixed-size workspace. A second embedding-model comparison, query transformation, and the LangChain baseline remain unmeasured. The requested full ablation report should not be considered complete until those planned comparisons are either run or explicitly scoped out with a documented rationale.
