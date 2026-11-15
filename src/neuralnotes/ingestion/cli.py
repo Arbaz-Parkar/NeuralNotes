@@ -35,6 +35,7 @@ from neuralnotes.downloader import (
     load_manifest,
 )
 from neuralnotes.embeddings import CachedEmbeddingModel, SentenceTransformerEmbedder
+from neuralnotes.embeddings.sentence_transformer import DEFAULT_EMBEDDING_MODEL
 from neuralnotes.ingestion.pipeline import DocumentIngestionPipeline, PreparedDocument
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.parsers import PypdfDocumentParser
@@ -93,13 +94,16 @@ def _build_chunker(
 
 def _build_pipeline(
     chunking_strategy: ChunkStrategy = "fixed_size",
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
 ) -> DocumentIngestionPipeline:
     """Create the local PDF, tokenizer, selected chunker, and embedder stack."""
     tokenizer = HuggingFaceOffsetTokenizer.from_pretrained()
     return DocumentIngestionPipeline(
         parser=PypdfDocumentParser(),
         chunker=_build_chunker(tokenizer, chunking_strategy),
-        embedder=CachedEmbeddingModel(SentenceTransformerEmbedder()),
+        embedder=CachedEmbeddingModel(
+            SentenceTransformerEmbedder(model_name=embedding_model)
+        ),
     )
 
 
@@ -117,6 +121,7 @@ def _save_prepared_document(
     *,
     workspace_id: UUID,
     workspace_name: str,
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
 ) -> IngestionResult:
     with session_factory.begin() as session:
         workspace = session.get(Workspace, workspace_id)
@@ -129,6 +134,7 @@ def _save_prepared_document(
             prepared,
             workspace_id=workspace_id,
             mime_type="application/pdf",
+            embedding_model=embedding_model,
             source_url=paper.landing_page_url,
             pdf_url=paper.pdf_url,
             year=paper.year,
@@ -155,6 +161,7 @@ def ingest_paper(
     workspace_id: UUID = DEFAULT_WORKSPACE_ID,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     chunking_strategy: ChunkStrategy = "fixed_size",
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     settings: Settings | None = None,
 ) -> IngestionResult:
     """Prepare and persist one paper selected from the verified manifest."""
@@ -170,7 +177,7 @@ def ingest_paper(
             f"Local PDF not found: {source_path}. Run neuralnotes.downloader first."
         )
 
-    prepared = _build_pipeline(chunking_strategy).prepare(
+    prepared = _build_pipeline(chunking_strategy, embedding_model).prepare(
         source_path, document_id=paper.anthology_id
     )
     engine = create_database_engine(settings)
@@ -182,6 +189,7 @@ def ingest_paper(
             prepared,
             workspace_id=workspace_id,
             workspace_name=workspace_name,
+            embedding_model=embedding_model,
         )
     finally:
         engine.dispose()
@@ -197,6 +205,7 @@ def ingest_manifest(
     workspace_id: UUID = DEFAULT_WORKSPACE_ID,
     workspace_name: str = DEFAULT_WORKSPACE_NAME,
     chunking_strategy: ChunkStrategy = "fixed_size",
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     settings: Settings | None = None,
 ) -> BatchIngestionResult:
     """Process selected or all manifest papers one at a time.
@@ -233,7 +242,7 @@ def ingest_manifest(
     failures: list[IngestionFailure] = []
     try:
         check_database_connection(engine)
-        pipeline = _build_pipeline(chunking_strategy)
+        pipeline = _build_pipeline(chunking_strategy, embedding_model)
         session_factory = create_database_session_factory(engine)
 
         for paper in selected_papers:
@@ -251,6 +260,7 @@ def ingest_manifest(
                     prepared,
                     workspace_id=workspace_id,
                     workspace_name=workspace_name,
+                    embedding_model=embedding_model,
                 )
             except Exception as exc:
                 failures.append(
@@ -320,6 +330,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         default="fixed_size",
         help="Chunking strategy to store (default: fixed_size).",
     )
+    parser.add_argument(
+        "--embedding-model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Sentence Transformers model identifier to use.",
+    )
     args = parser.parse_args(argv)
 
     configure_logging()
@@ -332,6 +347,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 workspace_id=args.workspace_id,
                 workspace_name=args.workspace_name,
                 chunking_strategy=args.chunking_strategy,
+                embedding_model=args.embedding_model,
             )
             chunk_count = sum(item.chunk_count for item in result.ingested)
             LOGGER.info(
@@ -349,6 +365,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             workspace_id=args.workspace_id,
             workspace_name=args.workspace_name,
             chunking_strategy=args.chunking_strategy,
+            embedding_model=args.embedding_model,
         )
     except Exception:
         LOGGER.exception("Ingestion failed for paper %s", args.paper_id)

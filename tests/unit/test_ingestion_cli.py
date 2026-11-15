@@ -88,7 +88,11 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
     prepared = _prepared_document(source_path)
     pipeline = FakePipeline(prepared)
     monkeypatch.setattr(cli, "load_manifest", lambda _path: [_paper()])
-    monkeypatch.setattr(cli, "_build_pipeline", lambda _strategy: pipeline)
+    monkeypatch.setattr(
+        cli,
+        "_build_pipeline",
+        lambda _strategy, _embedding_model=cli.DEFAULT_EMBEDDING_MODEL: pipeline,
+    )
 
     database_path = tmp_path / "neuralnotes.sqlite"
     database_url = f"sqlite+pysqlite:///{database_path.as_posix()}"
@@ -103,6 +107,7 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
         workspace_id=WORKSPACE_ID,
         workspace_name="Test workspace",
         chunking_strategy="sentence_window",
+        embedding_model="test/alternate-embedding-model",
         settings=Settings(database_url=database_url),
     )
 
@@ -128,6 +133,7 @@ def test_ingest_paper_persists_license_metadata_and_embedded_chunks(
         assert len(chunks) == 1
         assert chunks[0].text == "alpha"
         assert len(chunks[0].embedding) == 384
+        assert chunks[0].embedding_model == "test/alternate-embedding-model"
     finally:
         verification_engine.dispose()
 
