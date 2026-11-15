@@ -92,6 +92,7 @@ def test_runner_aggregates_answerable_queries_and_reports_excluded_unanswerables
     assert report.unanswerable_empty_result_rate == 1.0
     assert report.metrics_at_k["2"]["recall"] == 1.0
     assert report.metrics_at_k["2"]["mrr"] == 0.5
+    assert report.per_query[0].retrieval_latency_ms >= 0.0
     assert report.to_dict()["split"] == "dev"
 
 

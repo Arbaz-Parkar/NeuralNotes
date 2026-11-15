@@ -19,7 +19,12 @@ from neuralnotes.embeddings import SentenceTransformerEmbedder
 from neuralnotes.evaluation.dataset import load_cases
 from neuralnotes.evaluation.reports import write_evaluation_reports
 from neuralnotes.evaluation.runner import evaluate_retrieval
-from neuralnotes.retrieval import BM25Index, DenseIndex, reciprocal_rank_fusion
+from neuralnotes.retrieval import (
+    BM25Index,
+    CrossEncoderReranker,
+    DenseIndex,
+    reciprocal_rank_fusion,
+)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -43,6 +48,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="Evaluate lexical BM25 or BM25+dense reciprocal-rank fusion.",
     )
     parser.add_argument("--rrf-constant", type=float, default=60.0)
+    parser.add_argument(
+        "--reranker-model",
+        help="Optional sentence-transformers cross-encoder model id.",
+    )
+    parser.add_argument("--reranker-candidate-count", type=int, default=30)
     parser.add_argument("--confidence-level", type=float, default=0.95)
     parser.add_argument("--bootstrap-resamples", type=int, default=2_000)
     parser.add_argument("--bootstrap-seed", type=int, default=0)
@@ -74,6 +84,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             "Hybrid retrieval requires stored chunk embeddings and a model."
         )
 
+    reranker = (
+        CrossEncoderReranker(model_name=args.reranker_model)
+        if args.reranker_model
+        else None
+    )
+    if reranker is not None and args.reranker_candidate_count < max(args.k_values):
+        raise ValueError(
+            "reranker_candidate_count must be at least the largest k value."
+        )
+
     index = BM25Index(chunks, k1=args.k1, b=args.b)
     dense_index = DenseIndex(embedded_chunks) if embedded_chunks else None
     embedder = (
@@ -81,26 +101,49 @@ def main(argv: Sequence[str] | None = None) -> int:
         if dense_index is not None and embedding_model is not None
         else None
     )
-    candidate_k = min(max(args.k_values) * 5, len(chunks))
+    candidate_k = min(
+        args.reranker_candidate_count
+        if reranker is not None
+        else max(args.k_values) * 5,
+        len(chunks),
+    )
+    chunks_by_id = {chunk.chunk_id: chunk for chunk in chunks}
+    if embedder is not None:
+        embedder.embed_query("warm-up query")
+    if reranker is not None:
+        reranker.warm_up()
 
     def retrieve(query: str, top_k: int) -> tuple[str, ...]:
+        pool_k = candidate_k if reranker is not None else top_k
         if dense_index is None or embedder is None:
-            return tuple(hit.chunk.chunk_id for hit in index.search(query, top_k=top_k))
-        lexical_ids = tuple(
-            hit.chunk.chunk_id for hit in index.search(query, top_k=candidate_k)
-        )
-        dense_ids = tuple(
-            hit.chunk.chunk_id
-            for hit in dense_index.search(
-                embedder.embed_query(query), top_k=candidate_k
+            candidate_ids = tuple(
+                hit.chunk.chunk_id for hit in index.search(query, top_k=pool_k)
             )
-        )
-        fused = reciprocal_rank_fusion(
-            (lexical_ids, dense_ids),
-            rank_constant=args.rrf_constant,
+        else:
+            lexical_ids = tuple(
+                hit.chunk.chunk_id for hit in index.search(query, top_k=candidate_k)
+            )
+            dense_ids = tuple(
+                hit.chunk.chunk_id
+                for hit in dense_index.search(
+                    embedder.embed_query(query), top_k=candidate_k
+                )
+            )
+            fused = reciprocal_rank_fusion(
+                (lexical_ids, dense_ids),
+                rank_constant=args.rrf_constant,
+                top_k=pool_k,
+            )
+            candidate_ids = tuple(hit.chunk_id for hit in fused)
+
+        if reranker is None:
+            return candidate_ids[:top_k]
+        reranked = reranker.rerank(
+            query,
+            tuple(chunks_by_id[chunk_id] for chunk_id in candidate_ids),
             top_k=top_k,
         )
-        return tuple(hit.chunk_id for hit in fused)
+        return tuple(hit.chunk.chunk_id for hit in reranked)
 
     def retrieve_lexical(query: str, top_k: int) -> tuple[str, ...]:
         return tuple(hit.chunk.chunk_id for hit in index.search(query, top_k=top_k))
@@ -126,6 +169,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         retrieval_method=args.retrieval_method,
         rrf_constant=args.rrf_constant if args.retrieval_method == "hybrid" else None,
         embedding_model=embedding_model,
+        reranker_model=args.reranker_model,
+        reranker_candidate_count=(candidate_k if args.reranker_model else None),
         chunk_count=len(chunks),
         confidence_level=args.confidence_level,
         bootstrap_resamples=args.bootstrap_resamples,

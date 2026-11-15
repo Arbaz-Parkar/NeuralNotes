@@ -26,6 +26,8 @@ def write_evaluation_reports(
     retrieval_method: str = "bm25",
     rrf_constant: float | None = None,
     embedding_model: str | None = None,
+    reranker_model: str | None = None,
+    reranker_candidate_count: int | None = None,
     confidence_level: float = 0.95,
     bootstrap_resamples: int = 2_000,
     bootstrap_seed: int = 0,
@@ -68,6 +70,16 @@ def write_evaluation_reports(
     elif retrieval_method != "bm25":
         raise ValueError("retrieval_method must be 'bm25' or 'hybrid'.")
 
+    latency_values = sorted(item.retrieval_latency_ms for item in report.per_query)
+    reranker = None
+    if reranker_model is not None:
+        if not reranker_model.strip() or reranker_candidate_count is None:
+            raise ValueError("Reranker reports require a model and candidate count.")
+        reranker = {
+            "model": reranker_model,
+            "candidate_count": reranker_candidate_count,
+        }
+
     payload = {
         "report_schema_version": 2,
         "run_id": run_id,
@@ -77,6 +89,12 @@ def write_evaluation_reports(
         "chunk_count": chunk_count,
         "evidence_overlap_threshold": evidence_overlap,
         "retriever": retriever,
+        "reranker": reranker,
+        "retrieval_latency_ms": {
+            "p50": _percentile(latency_values, 0.50),
+            "p95": _percentile(latency_values, 0.95),
+            "query_count": len(latency_values),
+        },
         "answerable_query_count": report.answerable_query_count,
         "excluded_unanswerable_query_count": report.excluded_unanswerable_query_count,
         "unanswerable_query_count": report.unanswerable_query_count,
@@ -95,6 +113,7 @@ def write_evaluation_reports(
             {
                 "query_id": item.query_id,
                 "relevant_chunk_count": item.relevant_chunk_count,
+                "retrieval_latency_ms": item.retrieval_latency_ms,
                 "metrics_at_k": item.metrics_at_k,
             }
             for item in report.per_query
@@ -116,6 +135,8 @@ def _render_markdown(payload: dict[str, object]) -> str:
     assert isinstance(bootstrap, dict)
     retriever = payload["retriever"]
     assert isinstance(retriever, dict)
+    latency = payload["retrieval_latency_ms"]
+    assert isinstance(latency, dict)
     empty_result_rate = payload["unanswerable_empty_result_rate"]
     empty_result_text = (
         "not applicable" if empty_result_rate is None else f"{empty_result_rate:.1%}"
@@ -140,6 +161,8 @@ def _render_markdown(payload: dict[str, object]) -> str:
         f"- Evidence overlap threshold: {payload['evidence_overlap_threshold']}",
         f"- Retriever: `{retriever['name']}`",
         f"- BM25 parameters: `k1={retriever['k1']}`, `b={retriever['b']}`",
+        f"- Retrieval latency (model warm): p50 `{latency['p50']:.2f} ms`, "
+        f"p95 `{latency['p95']:.2f} ms` across {latency['query_count']} queries",
         "",
         "The no-match rate measures whether BM25 returned any lexical matches. "
         "A returned match is not evidence that a passage answers the query.",
@@ -152,6 +175,13 @@ def _render_markdown(payload: dict[str, object]) -> str:
     if "rrf_constant" in retriever:
         lines.insert(14, f"- RRF rank constant: `{retriever['rrf_constant']}`")
         lines.insert(15, f"- Embedding model: `{retriever['embedding_model']}`")
+    reranker = payload["reranker"]
+    if isinstance(reranker, dict):
+        lines.insert(
+            16,
+            f"- Reranker: `{reranker['model']}` over "
+            f"{reranker['candidate_count']} candidates",
+        )
     for key, values in metrics_at_k.items():
         for metric_name, mean_value in values.items():
             interval = confidence_intervals[key][metric_name]
@@ -180,3 +210,11 @@ def _validate_version(value: str, field_name: str) -> None:
             f"{field_name} must start with a letter or digit and contain only "
             "letters, digits, dots, underscores, or hyphens."
         )
+
+
+def _percentile(sorted_values: list[float], fraction: float) -> float:
+    position = fraction * (len(sorted_values) - 1)
+    lower = int(position)
+    upper = min(lower + 1, len(sorted_values) - 1)
+    weight = position - lower
+    return sorted_values[lower] * (1.0 - weight) + sorted_values[upper] * weight

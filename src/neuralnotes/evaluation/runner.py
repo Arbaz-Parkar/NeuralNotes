@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import asdict, dataclass
+from time import perf_counter
 
 from neuralnotes.chunking import Chunk
 from neuralnotes.evaluation.dataset import EvaluationCase
@@ -30,6 +31,7 @@ class QueryEvaluation:
     query_id: str
     relevant_chunk_count: int
     metrics_at_k: dict[str, dict[str, float]]
+    retrieval_latency_ms: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,7 +129,9 @@ def evaluate_retrieval(
             raise ValueError(
                 f"No chunks overlap evidence for verified query {case.query_id}."
             )
+        started = perf_counter()
         ranked_ids = tuple(retrieve(case.question, max_k))
+        retrieval_latency_ms = (perf_counter() - started) * 1_000
         metrics_at_k: dict[str, dict[str, float]] = {}
         for k in k_values:
             key = str(k)
@@ -143,6 +147,7 @@ def evaluate_retrieval(
                 query_id=case.query_id,
                 relevant_chunk_count=len(relevant),
                 metrics_at_k=metrics_at_k,
+                retrieval_latency_ms=retrieval_latency_ms,
             )
         )
 

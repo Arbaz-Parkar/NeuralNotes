@@ -24,6 +24,7 @@ class _QueryMetrics(BaseModel):
 
     query_id: str = Field(min_length=1)
     relevant_chunk_count: int | None = Field(default=None, ge=1)
+    retrieval_latency_ms: float | None = Field(default=None, ge=0)
     metrics_at_k: dict[str, dict[str, float]]
 
 

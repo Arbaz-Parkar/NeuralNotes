@@ -66,3 +66,14 @@ appearing in multiple lists accumulate evidence. For `L` lists with at most `R`
 entries each, fusion takes `O(L * R + U log U)` time and `O(U)` space, where
 `U` is the number of unique chunk ids. First-seen order breaks exact score ties
 deterministically.
+
+## Cross-encoder reranking
+
+The optional reranker scores each `(query, passage)` pair jointly and sorts a
+bounded candidate list by model score. For `C` candidates, its inference cost
+is `C` transformer pair evaluations (batched by the model); it is substantially
+more expensive than BM25 or vector dot products. The evaluation CLI therefore
+reranks only a configured top-candidate pool, warms the model before timing,
+and reports per-query retrieval p50/p95 latency. The default model is
+`cross-encoder/ms-marco-MiniLM-L6-v2`; its model card lists Apache-2.0 and
+describes training for MS MARCO passage ranking.
