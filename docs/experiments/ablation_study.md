@@ -1,8 +1,8 @@
 # Retrieval ablation report: chunking, hybrid fusion, and reranking
 
-**Status:** partial Phase 5 report  
-**Dataset:** `dpr-pilot-v0.10`  
-**Evaluation date:** 15 November 2026  
+**Status:** Phase 5 development ablations recorded; dense-model held-out confirmation remains open  
+**Datasets:** `dpr-pilot-v0.10` through `dpr-pilot-v0.15`  
+**Evaluation dates:** 15–16 November 2026  
 **Retrieval metrics:** macro averages over verified answerable queries; 95% paired percentile bootstrap intervals use 2,000 resamples and seed 0.
 
 ## Summary
@@ -82,6 +82,59 @@ No configuration showed a clear improvement in MRR@10 or nDCG@10. The largest po
 
 The RRF sweep held BM25 parameters and the embedding model fixed, comparing constants 20, 40, 80, and 100 against 60. RRF 20 had small positive differences in MRR (+0.0065, 95% CI [-0.0063, +0.0202]), nDCG (+0.0101, [-0.0103, +0.0334]), and recall (+0.0268, [-0.0357, +0.0982]); all intervals span zero. RRF 40 was nearly unchanged. RRF 80 had small negative differences with intervals touching or spanning zero. RRF 100 significantly reduced MRR (-0.0098, [-0.0189, -0.0026]) and nDCG (-0.0155, [-0.0307, -0.0027]). Retain RRF 60 as a stable reference; the sweep does not establish that it is optimal.
 
+## Additional development ablations
+
+### Dense embedding model
+
+On `dpr-pilot-v0.12` dev (56 paired queries), dense-only BGE
+(`BAAI/bge-small-en-v1.5`) was compared with dense-only MiniLM
+(`sentence-transformers/all-MiniLM-L6-v2`) in the fixed-size workspace. The
+candidate-minus-baseline differences at k=10 were:
+
+| Metric | Difference (95% CI) |
+| --- | --- |
+| MRR | +0.0738 [+0.0119, +0.1317] |
+| nDCG | +0.0946 [+0.0294, +0.1610] |
+| Recall | +0.1875 [+0.0625, +0.3214] |
+
+All three dev intervals are above zero, making BGE promising for dense-only
+retrieval in this workspace. Keep MiniLM as the default until a separately
+planned dense-only held-out comparison confirms the result. The earlier hybrid
+test comparison answers a different question and is not evidence for selecting
+the dense-only model.
+
+### BM25 pseudo-relevance feedback
+
+On `dpr-pilot-v0.14` dev (56 paired queries), BM25 pseudo-relevance feedback
+used five feedback documents and up to five expansion terms. Compared with
+ordinary BM25, the k=10 differences were:
+
+| Metric | Difference (95% CI) |
+| --- | --- |
+| MRR | -0.0318 [-0.0896, +0.0221] |
+| nDCG | -0.0443 [-0.1029, +0.0119] |
+| Recall | -0.0982 [-0.1964, +0.0000] |
+
+The point estimates decreased and the intervals include zero. Keep query
+expansion optional and disabled by default; this sample does not demonstrate a
+benefit.
+
+### LangChain BM25 implementation
+
+On `dpr-pilot-v0.15` dev (56 paired queries), LangChain Community BM25
+(`langchain-community==0.4.2`, `rank-bm25==0.2.2`) was compared with the
+NeuralNotes implementation. Candidate-minus-baseline differences at k=10 were:
+
+| Metric | Difference (95% CI) |
+| --- | --- |
+| MRR | -0.0146 [-0.0748, +0.0458] |
+| nDCG | -0.0175 [-0.0598, +0.0241] |
+| Recall | -0.0357 [-0.0804, +0.0000] |
+
+The intervals include zero and the candidate point estimates are slightly
+lower. Retain the in-house BM25 implementation as the default; the comparison
+does not support adding LangChain as a required runtime dependency.
+
 ## Decision and limitations
 
 - Keep workspace-scoped BM25 as the default retrieval behavior.
@@ -90,4 +143,9 @@ The RRF sweep held BM25 parameters and the embedding model fixed, comparing cons
 - Do not enable dense RRF by default based on the current constant and embedding model. The tested hybrid baseline underperformed BM25 and added latency.
 - Treat chunk-strategy comparisons as exploratory. The sample contains 56 development and 18 test answerable queries across a small paper corpus; confidence intervals quantify query resampling uncertainty, not corpus diversity.
 
-This is a partial Phase 5 report. BM25 and RRF sweeps cover only the fixed-size workspace. A second embedding-model comparison, query transformation, and the LangChain baseline remain unmeasured. The requested full ablation report should not be considered complete until those planned comparisons are either run or explicitly scoped out with a documented rationale.
+These ablations use small verified query samples and a narrow paper corpus.
+Bootstrap intervals quantify variation across the queries in this dataset; they
+do not account for variation across new papers or domains. The BM25/RRF parameter
+sweeps cover only the fixed-size workspace, and the BGE result still needs a
+clean dense-only held-out confirmation. No hyperparameter or model choice was
+made from the held-out split.
