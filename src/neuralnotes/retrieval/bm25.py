@@ -2,7 +2,7 @@
 
 import re
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from heapq import heappush, heapreplace
 from math import isfinite, log
@@ -10,6 +10,10 @@ from math import isfinite, log
 from neuralnotes.chunking import Chunk
 
 _TOKEN_PATTERN = re.compile(r"\w+", re.UNICODE)
+_QUERY_EXPANSION_STOPWORDS = frozenset(
+    "a an and are as at be been by for from in is it of on or that the this to was "
+    "were what when where which who why with do does did how many much".split()
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,3 +133,35 @@ class BM25Index:
 def _tokenize(text: str) -> tuple[str, ...]:
     """Lowercase text and split it into Unicode word tokens."""
     return tuple(_TOKEN_PATTERN.findall(text.casefold()))
+
+
+def expand_query_from_hits(
+    query: str,
+    hits: Sequence[BM25Hit],
+    *,
+    term_count: int = 5,
+) -> str:
+    """Add deterministic rank-weighted terms from first-pass BM25 hits."""
+    if not query.strip():
+        raise ValueError("query must not be empty.")
+    if (
+        isinstance(term_count, bool)
+        or not isinstance(term_count, int)
+        or term_count < 1
+    ):
+        raise ValueError("term_count must be a positive integer.")
+
+    query_terms = set(_tokenize(query))
+    term_weights: Counter[str] = Counter()
+    for rank, hit in enumerate(hits, start=1):
+        for term in _tokenize(hit.chunk.text):
+            if (
+                len(term) > 2
+                and term not in query_terms
+                and term not in _QUERY_EXPANSION_STOPWORDS
+            ):
+                term_weights[term] += 1.0 / rank
+
+    ranked_terms = sorted(term_weights, key=lambda term: (-term_weights[term], term))
+    expansion_terms = ranked_terms[:term_count]
+    return " ".join((query, *expansion_terms))

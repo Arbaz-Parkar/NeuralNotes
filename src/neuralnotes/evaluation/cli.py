@@ -23,6 +23,7 @@ from neuralnotes.retrieval import (
     BM25Index,
     CrossEncoderReranker,
     DenseIndex,
+    expand_query_from_hits,
     reciprocal_rank_fusion,
 )
 
@@ -43,10 +44,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--b", type=float, default=0.75)
     parser.add_argument(
         "--retrieval-method",
-        choices=("bm25", "dense", "hybrid"),
+        choices=("bm25", "bm25_prf", "dense", "hybrid"),
         default="bm25",
-        help="Choose BM25, dense vector search, or hybrid retrieval.",
+        help="Choose BM25, BM25 pseudo-relevance expansion, dense, or hybrid.",
     )
+    parser.add_argument("--feedback-document-count", type=int, default=5)
+    parser.add_argument("--feedback-term-count", type=int, default=5)
     parser.add_argument("--rrf-constant", type=float, default=60.0)
     parser.add_argument(
         "--reranker-model",
@@ -93,6 +96,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise ValueError(
             "reranker_candidate_count must be at least the largest k value."
         )
+    if args.feedback_document_count < 1 or args.feedback_term_count < 1:
+        raise ValueError("Feedback document and term counts must be positive.")
 
     index = BM25Index(chunks, k1=args.k1, b=args.b)
     dense_index = DenseIndex(embedded_chunks) if embedded_chunks else None
@@ -115,9 +120,17 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     def retrieve(query: str, top_k: int) -> tuple[str, ...]:
         pool_k = candidate_k if reranker is not None else top_k
-        if args.retrieval_method == "bm25":
+        if args.retrieval_method in {"bm25", "bm25_prf"}:
+            search_query = query
+            if args.retrieval_method == "bm25_prf":
+                feedback_hits = index.search(query, top_k=args.feedback_document_count)
+                search_query = expand_query_from_hits(
+                    query,
+                    feedback_hits,
+                    term_count=args.feedback_term_count,
+                )
             candidate_ids = tuple(
-                hit.chunk.chunk_id for hit in index.search(query, top_k=pool_k)
+                hit.chunk.chunk_id for hit in index.search(search_query, top_k=pool_k)
             )
         elif args.retrieval_method == "dense":
             assert dense_index is not None and embedder is not None
@@ -175,6 +188,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         bm25_b=args.b,
         retrieval_method=args.retrieval_method,
         rrf_constant=args.rrf_constant if args.retrieval_method == "hybrid" else None,
+        feedback_document_count=args.feedback_document_count,
+        feedback_term_count=args.feedback_term_count,
         embedding_model=embedding_model,
         reranker_model=args.reranker_model,
         reranker_candidate_count=(candidate_k if args.reranker_model else None),

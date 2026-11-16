@@ -25,6 +25,8 @@ def write_evaluation_reports(
     chunk_count: int,
     retrieval_method: str = "bm25",
     rrf_constant: float | None = None,
+    feedback_document_count: int = 5,
+    feedback_term_count: int = 5,
     embedding_model: str | None = None,
     reranker_model: str | None = None,
     reranker_candidate_count: int | None = None,
@@ -66,6 +68,17 @@ def write_evaluation_reports(
             "b": bm25_b,
             "rrf_constant": rrf_constant,
             "embedding_model": embedding_model,
+        }
+    elif retrieval_method == "bm25_prf":
+        if feedback_document_count < 1 or feedback_term_count < 1:
+            raise ValueError("Query feedback counts must be positive.")
+        retriever = {
+            "name": "BM25 + pseudo-relevance query expansion",
+            "k1": bm25_k1,
+            "b": bm25_b,
+            "query_transformation": "rank_weighted_top_terms",
+            "feedback_document_count": feedback_document_count,
+            "feedback_term_count": feedback_term_count,
         }
     elif retrieval_method == "dense":
         if not embedding_model:
@@ -183,6 +196,13 @@ def _render_markdown(payload: dict[str, object]) -> str:
     if "rrf_constant" in retriever:
         lines.insert(14, f"- RRF rank constant: `{retriever['rrf_constant']}`")
         lines.insert(15, f"- Embedding model: `{retriever['embedding_model']}`")
+    if "query_transformation" in retriever:
+        lines.insert(16, "- Query transformation: `rank-weighted top-term feedback`")
+        lines.insert(
+            17,
+            f"- Feedback: `{retriever['feedback_document_count']}` chunks, "
+            f"`{retriever['feedback_term_count']}` expansion terms",
+        )
     reranker = payload["reranker"]
     if isinstance(reranker, dict):
         lines.insert(

@@ -89,7 +89,11 @@ def test_cli_builds_workspace_index_and_writes_versioned_outputs(
 
 @pytest.mark.parametrize(
     ("retrieval_method", "retriever_name"),
-    (("hybrid", "BM25 + dense RRF"), ("dense", "Dense")),
+    (
+        ("hybrid", "BM25 + dense RRF"),
+        ("dense", "Dense"),
+        ("bm25_prf", "BM25 + pseudo-relevance query expansion"),
+    ),
 )
 def test_cli_can_evaluate_dense_or_hybrid_retrieval_with_cross_encoder(
     tmp_path: Path,
