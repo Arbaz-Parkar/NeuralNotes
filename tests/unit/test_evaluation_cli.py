@@ -93,6 +93,7 @@ def test_cli_builds_workspace_index_and_writes_versioned_outputs(
         ("hybrid", "BM25 + dense RRF"),
         ("dense", "Dense"),
         ("bm25_prf", "BM25 + pseudo-relevance query expansion"),
+        ("langchain_bm25", "LangChain BM25Retriever"),
     ),
 )
 def test_cli_can_evaluate_dense_or_hybrid_retrieval_with_cross_encoder(
@@ -150,6 +151,16 @@ def test_cli_can_evaluate_dense_or_hybrid_retrieval_with_cross_encoder(
                 for candidate in candidates[:top_k]
             )
 
+    class FakeLangChainRetriever:
+        def __init__(self, chunks, *, k1: float, b: float, top_k: int) -> None:
+            assert tuple(chunks) == (chunk,)
+            assert k1 == 1.5
+            assert b == 0.75
+            assert top_k == 1
+
+        def search(self, _query: str) -> tuple[str, ...]:
+            return ("relevant",)
+
     monkeypatch.setattr(cli, "load_cases", lambda *_args, **_kwargs: (case,))
     monkeypatch.setattr(cli, "create_database_engine", lambda: FakeEngine())
     monkeypatch.setattr(
@@ -166,6 +177,7 @@ def test_cli_can_evaluate_dense_or_hybrid_retrieval_with_cross_encoder(
     )
     monkeypatch.setattr(cli, "SentenceTransformerEmbedder", FakeEmbedder)
     monkeypatch.setattr(cli, "CrossEncoderReranker", FakeReranker)
+    monkeypatch.setattr(cli, "LangChainBM25Retriever", FakeLangChainRetriever)
 
     result = cli.main(
         [

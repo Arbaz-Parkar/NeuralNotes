@@ -80,12 +80,23 @@ def write_evaluation_reports(
             "feedback_document_count": feedback_document_count,
             "feedback_term_count": feedback_term_count,
         }
+    elif retrieval_method == "langchain_bm25":
+        retriever = {
+            "name": "LangChain BM25Retriever",
+            "k1": bm25_k1,
+            "b": bm25_b,
+            "library": "langchain-community 0.4.2",
+            "scoring_backend": "rank-bm25 0.2.2",
+        }
     elif retrieval_method == "dense":
         if not embedding_model:
             raise ValueError("Dense reports require the embedding model name.")
         retriever = {"name": "Dense", "embedding_model": embedding_model}
     elif retrieval_method != "bm25":
-        raise ValueError("retrieval_method must be 'bm25', 'dense', or 'hybrid'.")
+        raise ValueError(
+            "retrieval_method must be 'bm25', 'bm25_prf', 'dense', 'hybrid', "
+            "or 'langchain_bm25'."
+        )
 
     latency_values = sorted(item.retrieval_latency_ms for item in report.per_query)
     reranker = None
@@ -203,6 +214,9 @@ def _render_markdown(payload: dict[str, object]) -> str:
             f"- Feedback: `{retriever['feedback_document_count']}` chunks, "
             f"`{retriever['feedback_term_count']}` expansion terms",
         )
+    if "library" in retriever:
+        lines.insert(16, f"- LangChain library: `{retriever['library']}`")
+        lines.insert(17, f"- Scoring backend: `{retriever['scoring_backend']}`")
     reranker = payload["reranker"]
     if isinstance(reranker, dict):
         lines.insert(

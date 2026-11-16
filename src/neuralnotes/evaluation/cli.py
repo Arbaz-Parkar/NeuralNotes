@@ -26,6 +26,7 @@ from neuralnotes.retrieval import (
     expand_query_from_hits,
     reciprocal_rank_fusion,
 )
+from neuralnotes.retrieval.langchain_bm25 import LangChainBM25Retriever
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -44,7 +45,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--b", type=float, default=0.75)
     parser.add_argument(
         "--retrieval-method",
-        choices=("bm25", "bm25_prf", "dense", "hybrid"),
+        choices=("bm25", "bm25_prf", "dense", "hybrid", "langchain_bm25"),
         default="bm25",
         help="Choose BM25, BM25 pseudo-relevance expansion, dense, or hybrid.",
     )
@@ -112,6 +113,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         else max(args.k_values) * 5,
         len(chunks),
     )
+    langchain_index = (
+        LangChainBM25Retriever(
+            chunks,
+            k1=args.k1,
+            b=args.b,
+            top_k=(candidate_k if reranker is not None else max(args.k_values)),
+        )
+        if args.retrieval_method == "langchain_bm25"
+        else None
+    )
     chunks_by_id = {chunk.chunk_id: chunk for chunk in chunks}
     if embedder is not None:
         embedder.embed_query("warm-up query")
@@ -132,6 +143,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             candidate_ids = tuple(
                 hit.chunk.chunk_id for hit in index.search(search_query, top_k=pool_k)
             )
+        elif args.retrieval_method == "langchain_bm25":
+            assert langchain_index is not None
+            candidate_ids = langchain_index.search(query)
         elif args.retrieval_method == "dense":
             assert dense_index is not None and embedder is not None
             candidate_ids = tuple(

@@ -33,6 +33,10 @@ parser-eval = [
 embeddings = [
     "sentence-transformers==6.2.0",
 ]
+langchain-baseline = [
+    "langchain-community==0.4.2",
+    "rank-bm25==0.2.2",
+]
 
 [tool.ruff]
 line-length = 88

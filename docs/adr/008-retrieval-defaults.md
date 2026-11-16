@@ -37,8 +37,11 @@ generalization.
 - BM25 parameter and RRF sweeps did not show reliable development gains over
   the reference settings. RRF 100 reduced MRR@10 and nDCG@10.
 - Dense-only BGE had positive MRR@10, nDCG@10, and Recall@10 differences over
-  MiniLM on development, with paired intervals above zero. A clean dense-only
-  held-out confirmation remains open.
+  MiniLM on development, with paired intervals above zero. On the 18-query
+  dense-only held-out comparison, its nDCG@10 difference was +0.1384 (95% CI
+  [+0.0392, +0.2343]); MRR@10 was +0.1130 ([-0.0259, +0.2361]) and Recall@10
+  was +0.1667 ([0.0000, +0.3333]). This is promising but limited confirmation;
+  retain MiniLM as the default until broader corpus coverage is available.
 - Pseudo-relevance feedback and LangChain BM25 did not show reliable
   development improvements over in-house BM25.
 
@@ -51,8 +54,7 @@ individual experiment reports.
 - New users retain a lightweight, explainable lexical retrieval default.
 - Optional retrieval modes remain available for controlled experiments without
   changing the established default.
-- The development gains for BGE and reranking remain hypotheses to verify on a
-  larger, more diverse corpus. The current evidence does not support a broad
-  quality claim.
+- The BGE result and reranking development gains remain limited evidence from a
+  small corpus. The current data does not support a broad quality claim.
 - Future benchmark growth should prioritize additional independently verified
   questions and papers, especially for the held-out split.

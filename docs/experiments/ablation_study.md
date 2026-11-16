@@ -98,10 +98,15 @@ candidate-minus-baseline differences at k=10 were:
 | Recall | +0.1875 [+0.0625, +0.3214] |
 
 All three dev intervals are above zero, making BGE promising for dense-only
-retrieval in this workspace. Keep MiniLM as the default until a separately
-planned dense-only held-out comparison confirms the result. The earlier hybrid
-test comparison answers a different question and is not evidence for selecting
-the dense-only model.
+retrieval in this workspace. A separate dense-only confirmation was run once
+on `dpr-pilot-v0.16` test (18 paired queries). BGE minus MiniLM at k=10 was
+MRR +0.1130 (95% CI [-0.0259, +0.2361]), nDCG +0.1384 (95% CI [+0.0392, +0.2343]),
+and Recall +0.1667 ([+0.0000, +0.3333]). The nDCG interval is above zero; the
+MRR and Recall intervals include zero. This small held-out sample offers
+promising but limited confirmation. Keep MiniLM as the default until the
+benchmark has broader paper and query coverage; do not retune on these test
+results. The earlier hybrid test comparison answers a different question and
+is not evidence for selecting the dense-only model.
 
 ### BM25 pseudo-relevance feedback
 
@@ -146,6 +151,6 @@ does not support adding LangChain as a required runtime dependency.
 These ablations use small verified query samples and a narrow paper corpus.
 Bootstrap intervals quantify variation across the queries in this dataset; they
 do not account for variation across new papers or domains. The BM25/RRF parameter
-sweeps cover only the fixed-size workspace, and the BGE result still needs a
-clean dense-only held-out confirmation. No hyperparameter or model choice was
-made from the held-out split.
+sweeps cover only the fixed-size workspace. The dense-only BGE confirmation is
+positive for nDCG but remains uncertain for MRR and Recall. No hyperparameter or
+model choice was made from the held-out split.
