@@ -77,7 +77,9 @@ def test_ingest_manifest_reuses_pipeline_and_commits_each_paper(
 
     pipeline = FakePipeline()
     monkeypatch.setattr(cli, "load_manifest", lambda _path: list(papers))
-    monkeypatch.setattr(cli, "_build_pipeline", lambda _strategy: pipeline)
+    monkeypatch.setattr(
+        cli, "_build_pipeline", lambda _strategy, _embedding_model: pipeline
+    )
 
     database_path = tmp_path / "batch.sqlite3"
     database_url = f"sqlite+pysqlite:///{database_path.as_posix()}"
