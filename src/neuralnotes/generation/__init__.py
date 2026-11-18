@@ -7,6 +7,7 @@ from neuralnotes.generation.models import (
     GroundedAnswer,
     RetrievedPassage,
 )
+from neuralnotes.generation.ollama import OllamaAnswerGenerator, OllamaGenerationError
 from neuralnotes.generation.protocols import AnswerGenerator
 from neuralnotes.generation.service import generate_grounded_answer
 
@@ -16,6 +17,8 @@ __all__ = [
     "CitedClaim",
     "DraftAnswer",
     "GroundedAnswer",
+    "OllamaAnswerGenerator",
+    "OllamaGenerationError",
     "RetrievedPassage",
     "generate_grounded_answer",
 ]

@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -14,6 +14,13 @@ from neuralnotes.database import (
     create_database_session_factory,
 )
 from neuralnotes.db.retrieval import build_workspace_bm25_index
+from neuralnotes.generation import (
+    GroundedAnswer,
+    OllamaAnswerGenerator,
+    OllamaGenerationError,
+    RetrievedPassage,
+    generate_grounded_answer,
+)
 from neuralnotes.settings import Settings
 
 settings = Settings()
@@ -110,3 +117,36 @@ def search_workspace(
         abstained=request.min_score is not None and not hits,
         min_score=request.min_score,
     )
+
+
+@app.post("/v1/answer", response_model=GroundedAnswer, tags=["generation"])
+def answer_workspace(
+    request: SearchRequest,
+    session: Annotated[Session, Depends(get_db_session)],
+) -> GroundedAnswer:
+    """Generate a cited answer from workspace-scoped BM25 passages."""
+    index = build_workspace_bm25_index(session, request.workspace_id)
+    hits = index.search(request.query, top_k=request.top_k)
+    if request.min_score is not None:
+        hits = tuple(hit for hit in hits if hit.score >= request.min_score)
+
+    passages = tuple(
+        RetrievedPassage(
+            chunk_id=hit.chunk.chunk_id,
+            document_id=hit.chunk.document_id,
+            text=hit.chunk.text,
+            page_number=hit.chunk.page_number,
+            start_char=hit.chunk.start_char,
+            end_char=hit.chunk.end_char,
+        )
+        for hit in hits
+    )
+    generator = OllamaAnswerGenerator(
+        model_name=settings.ollama_model,
+        base_url=settings.ollama_base_url,
+        timeout_seconds=settings.ollama_timeout_seconds,
+    )
+    try:
+        return generate_grounded_answer(request.query, passages, generator)
+    except OllamaGenerationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
