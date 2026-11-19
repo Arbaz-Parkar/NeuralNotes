@@ -1,5 +1,41 @@
 # NeuralNotes
 
+## Auditing answer grounding
+
+NeuralNotes checks that answer citations refer to passages returned by retrieval.
+That structural check does not establish that a passage supports its claim. Use
+the human review workflow below to measure claim support.
+
+With Ollama and the local API running, collect verified, answerable questions
+from the development split:
+
+```powershell
+.\.venv\Scripts\python.exe -m neuralnotes.evaluation.grounding_collect `
+    --dataset .\data\evaluation\golden.jsonl `
+    --split dev `
+    --workspace-id 11111111-1111-4111-8111-111111111111 `
+    --output .\data\processed\evaluations\grounding\dev-review.jsonl
+```
+
+The collector writes one unreviewed JSONL record per generated claim. Review
+each claim using only its cited passage or passages, and fill in `label`,
+`reviewer`, and `note`. Labels are `supported`, `partially_supported`,
+`unsupported`, and `unverifiable`. The collector does not assign labels.
+
+After reviewing the records, summarize them:
+
+```powershell
+.\.venv\Scripts\python.exe -m neuralnotes.evaluation.grounding `
+    --input .\data\processed\evaluations\grounding\dev-review.jsonl
+```
+
+The report writes timestamped JSON and Markdown files beneath
+`data/processed/evaluations/grounding`. It includes claim and answer support
+rates, label counts, and pairwise reviewer agreement when reviewers share
+claims. Unverifiable judgments are excluded from support-rate denominators.
+Use the development split to refine prompts and review guidance; reserve the
+test split for a final evaluation after the protocol is fixed.
+
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
 > **Project status — 17 November 2026:** ingestion, workspace-scoped retrieval, and the retrieval evaluation harness are implemented. The verified set contains 56 answerable development questions and 18 answerable test questions, plus six unanswerable questions in each split. Phase 5 compared chunking, BM25/RRF parameters, dense embeddings, reranking, pseudo-relevance feedback, and a LangChain BM25 baseline. In-house BM25 remains the default; results and limitations are recorded in [ADR 008](docs/adr/008-retrieval-defaults.md) and the [ablation report](docs/experiments/ablation_study.md). Phase 6 now includes a local Ollama adapter and a workspace-scoped `/v1/answer` endpoint. Citation ids are checked against retrieved chunks; semantic support evaluation remains open.
