@@ -38,7 +38,18 @@ test split for a final evaluation after the protocol is fixed.
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 17 November 2026:** ingestion, workspace-scoped retrieval, and the retrieval evaluation harness are implemented. The verified set contains 56 answerable development questions and 18 answerable test questions, plus six unanswerable questions in each split. Phase 5 compared chunking, BM25/RRF parameters, dense embeddings, reranking, pseudo-relevance feedback, and a LangChain BM25 baseline. In-house BM25 remains the default; results and limitations are recorded in [ADR 008](docs/adr/008-retrieval-defaults.md) and the [ablation report](docs/experiments/ablation_study.md). Phase 6 now includes a local Ollama adapter and a workspace-scoped `/v1/answer` endpoint. Citation ids are checked against retrieved chunks; semantic support evaluation remains open.
+> **Project status — 19 November 2026:** ingestion, workspace-scoped retrieval, and
+> the retrieval evaluation harness are implemented. The verified set contains
+> 56 answerable development questions and 18 answerable test questions, plus six
+> unanswerable questions in each split. Phase 5 compared chunking, BM25/RRF
+> parameters, dense embeddings, reranking, pseudo-relevance feedback, and a
+> LangChain BM25 baseline. In-house BM25 remains the default; results and
+> limitations are recorded in [ADR 008](docs/adr/008-retrieval-defaults.md) and
+> the [ablation report](docs/experiments/ablation_study.md). Phase 6 now includes
+> a local Ollama adapter and a workspace-scoped `/v1/answer` endpoint. Citation
+> ids are checked against retrieved chunks. Human grounding-audit tooling can
+> collect development answers and report manually reviewed claims; a larger
+> review sample has not yet been completed.
 
 ## What works today
 
