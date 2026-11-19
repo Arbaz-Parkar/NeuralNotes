@@ -4,6 +4,7 @@ import argparse
 import json
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
+from itertools import combinations
 from pathlib import Path
 from typing import Literal
 
@@ -87,6 +88,8 @@ def summarize_audit(
     for record in records:
         answer_labels[(record.reviewer, record.query_id)].append(record.label)
 
+    reviewer_agreement = _reviewer_agreement(records)
+
     answer_counts: Counter[str] = Counter()
     for labels in answer_labels.values():
         if all(label == "supported" for label in labels):
@@ -123,14 +126,60 @@ def summarize_audit(
             if rated_answer_count
             else None
         ),
+        "reviewer_agreement": reviewer_agreement,
     }
+
+
+def _reviewer_agreement(
+    records: tuple[GroundingAuditRecord, ...],
+) -> list[dict[str, object]]:
+    """Compute pairwise exact agreement and nominal Cohen's kappa."""
+    judgments: dict[str, dict[tuple[str, str], GroundingLabel]] = defaultdict(dict)
+    for record in records:
+        key = (record.query_id, record.claim.strip().casefold())
+        if key in judgments[record.reviewer]:
+            raise ValueError(
+                "Each reviewer may label a claim only once; duplicate judgment "
+                f"for query {record.query_id!r} by {record.reviewer!r}."
+            )
+        judgments[record.reviewer][key] = record.label
+
+    results: list[dict[str, object]] = []
+    for reviewer_a, reviewer_b in combinations(sorted(judgments), 2):
+        shared_keys = judgments[reviewer_a].keys() & judgments[reviewer_b].keys()
+        if not shared_keys:
+            continue
+        pairs = tuple(
+            (judgments[reviewer_a][key], judgments[reviewer_b][key])
+            for key in shared_keys
+        )
+        count = len(pairs)
+        observed = sum(label_a == label_b for label_a, label_b in pairs) / count
+        counts_a = Counter(label_a for label_a, _ in pairs)
+        counts_b = Counter(label_b for _, label_b in pairs)
+        expected = sum(
+            counts_a[label] * counts_b[label] / (count * count) for label in _LABELS
+        )
+        kappa = (observed - expected) / (1.0 - expected) if expected < 1.0 else None
+        results.append(
+            {
+                "reviewer_a": reviewer_a,
+                "reviewer_b": reviewer_b,
+                "paired_claim_count": count,
+                "observed_agreement": observed,
+                "cohens_kappa": kappa,
+            }
+        )
+    return results
 
 
 def _render_markdown(summary: dict[str, object]) -> str:
     claim_counts = summary["claim_label_counts"]
     answer_counts = summary["answer_label_counts"]
+    agreements = summary["reviewer_agreement"]
     assert isinstance(claim_counts, dict)
     assert isinstance(answer_counts, dict)
+    assert isinstance(agreements, list)
     claim_rate = summary["claim_support_rate"]
     answer_rate = summary["fully_supported_answer_rate"]
     claim_rate_text = "n/a" if claim_rate is None else f"{claim_rate:.3f}"
@@ -171,9 +220,35 @@ def _render_markdown(summary: dict[str, object]) -> str:
             f"{summary['rated_answer_count']} rated answers).",
             "",
             "Unverifiable judgments are excluded from support-rate denominators.",
-            "",
         ]
     )
+    if agreements:
+        lines.extend(
+            [
+                "",
+                "## Reviewer agreement",
+                "",
+                "| Reviewers | Paired claims | Exact agreement | Cohen's kappa |",
+                "| --- | ---: | ---: | ---: |",
+            ]
+        )
+        for agreement in agreements:
+            kappa = agreement["cohens_kappa"]
+            kappa_text = "n/a" if kappa is None else f"{kappa:.3f}"
+            lines.append(
+                f"| {agreement['reviewer_a']} / {agreement['reviewer_b']} | "
+                f"{agreement['paired_claim_count']} | "
+                f"{agreement['observed_agreement']:.3f} | {kappa_text} |"
+            )
+    else:
+        lines.extend(
+            [
+                "",
+                "Reviewer agreement: unavailable; no claims were labeled by "
+                "more than one reviewer.",
+            ]
+        )
+    lines.append("")
     return "\n".join(lines)
 
 
