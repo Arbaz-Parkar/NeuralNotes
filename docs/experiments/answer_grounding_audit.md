@@ -103,6 +103,16 @@ majority class. It missed both partial labels and the unsupported claim. Do not
 use this judge for scoring or prompt comparisons in its current form. The
 per-claim rationales and confusion matrix are in the local generated report.
 
+An exploratory rerun with `qwen3.5:4b` predicted 37 supported and three
+partially supported claims, with no unsupported predictions. Against the same
+human labels, it matched 36/40 claims (0.900 exact agreement; Cohen's kappa
+approximately 0.289). It correctly marked one of the two partial claims, but
+missed the other partial claim and the unsupported claim, and incorrectly
+marked two supported claims as partial. This is a small development-only
+comparison; `qwen3.5:4b` is also the answer-generation model, so this run is not
+an independent-judge result. Neither tested judge is suitable for scoring or
+prompt comparisons yet.
+
 ## Collect claims for review
 
 Start the local API, then collect verified, answerable questions from the dev
