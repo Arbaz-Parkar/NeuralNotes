@@ -77,6 +77,22 @@ before using it to calibrate or compare an automated judge. The reviewed JSONL
 and generated reports are local evaluation artifacts; this summary records the
 result without committing source passage text.
 
+## Expanded development sample (2026-11-24)
+
+The review was expanded to 40 claims across 18 development questions, still
+with one reviewer. Thirty-seven claims were supported, two were partially
+supported, and one was unsupported. The supported-claim rate was 0.925 (37/40).
+At the answer level, 15 of 18 answers were fully supported, two were partially
+supported, and one was unsupported; the fully supported answer rate was 0.833.
+There were no unverifiable judgments. The unsupported claim cited a passage
+from the FLARE paper while answering a question about R2AG.
+
+These results describe this small development sample only. They are not a
+held-out test result, and a single reviewer provides no inter-reviewer
+agreement or calibration evidence for an automated judge. Keep prompt tuning
+on dev data and obtain independent overlapping labels before making broader
+faithfulness claims.
+
 ## Collect claims for review
 
 Start the local API, then collect verified, answerable questions from the dev
