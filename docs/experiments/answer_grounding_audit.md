@@ -62,6 +62,44 @@ the annotation rubric, reviewer agreement, and sample size. Automated model
 judges may be explored later, but must be calibrated against this human-labeled
 set before their scores are used for comparisons.
 
+## Development pilot (2026-11-24)
+
+The first review covered 20 generated claims from 10 verified development
+questions, labeled by one reviewer. Nineteen claims were supported and one was
+partially supported, for a supported-claim rate of 0.950 (19/20). At the answer
+level, 9 of 10 answers were fully supported and one was partially supported
+(0.900 fully supported). There were no unsupported or unverifiable judgments.
+
+This is a small workflow pilot, not a reliable estimate of overall answer
+faithfulness. With one reviewer, inter-reviewer agreement and Cohen's kappa
+were unavailable. Expand the sample and obtain independent overlapping labels
+before using it to calibrate or compare an automated judge. The reviewed JSONL
+and generated reports are local evaluation artifacts; this summary records the
+result without committing source passage text.
+
+## Collect claims for review
+
+Start the local API, then collect verified, answerable questions from the dev
+split. This writes one unreviewed JSONL row per generated claim and a summary
+with query, abstention, and claim counts:
+
+```powershell
+python -m neuralnotes.evaluation.grounding_collect `
+    --dataset .\data\evaluation\golden.jsonl `
+    --split dev `
+    --workspace-id 11111111-1111-4111-8111-111111111111 `
+    --output .\data\processed\evaluations\grounding\dev-review.jsonl
+```
+
+Review each claim against only its listed citation passages. Fill in `label`,
+`reviewer`, and `note` in every JSONL row before passing the file to the report
+command. The collector does not assign labels. It saves completed claim rows as
+each query finishes and reports failed query IDs in the summary, so successful
+answers remain available if some requests fail. Use a filename ending in
+`.jsonl`, such as `dev-review.jsonl`; malformed output paths are rejected before
+any model calls. Collection on the test split is reserved for a final evaluation
+after the prompt and protocol are fixed.
+
 ## Summarize an audit
 
 After reviewers label the JSONL records, run the report command from the project
