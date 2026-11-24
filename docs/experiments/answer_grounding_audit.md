@@ -93,6 +93,16 @@ agreement or calibration evidence for an automated judge. Keep prompt tuning
 on dev data and obtain independent overlapping labels before making broader
 faithfulness claims.
 
+## First automated-judge calibration (2026-11-24)
+
+The local `qwen2.5:1.5b` judge predicted `supported` for all 40 claims. Against
+the single-reviewer labels (37 supported, two partially supported, one
+unsupported), exact agreement was 0.925 (37/40), but Cohen's kappa was 0.000:
+the judge assigned only one label, so its apparent agreement came from the
+majority class. It missed both partial labels and the unsupported claim. Do not
+use this judge for scoring or prompt comparisons in its current form. The
+per-claim rationales and confusion matrix are in the local generated report.
+
 ## Collect claims for review
 
 Start the local API, then collect verified, answerable questions from the dev
