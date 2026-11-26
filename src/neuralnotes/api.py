@@ -1,9 +1,11 @@
 """HTTP API application, health check, and workspace-scoped search."""
 
+import logging
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
+from time import perf_counter
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
@@ -21,9 +23,11 @@ from neuralnotes.generation import (
     RetrievedPassage,
     generate_grounded_answer,
 )
+from neuralnotes.logging_config import configure_logging
 from neuralnotes.settings import Settings
 
 settings = Settings()
+logger = logging.getLogger(__name__)
 
 
 class SearchRequest(BaseModel):
@@ -67,6 +71,7 @@ class SearchResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     """Create the shared database pool and release it at application shutdown."""
+    configure_logging(settings.log_level)
     engine = create_database_engine(settings)
     application.state.session_factory = create_database_session_factory(engine)
     try:
@@ -76,6 +81,30 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
+
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    """Attach a request id and log request outcome without logging its body."""
+    request_id = uuid4()
+    started_at = perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception("request failed", extra={"request_id": request_id})
+        raise
+
+    duration_ms = (perf_counter() - started_at) * 1_000
+    response.headers["X-Request-ID"] = str(request_id)
+    logger.info(
+        "request completed method=%s path=%s status_code=%s duration_ms=%.2f",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+        extra={"request_id": request_id},
+    )
+    return response
 
 
 def get_db_session(request: Request) -> Iterator[Session]:
