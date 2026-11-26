@@ -1,5 +1,12 @@
 # Observability
 
+## Generation output limit
+
+Ollama generation is capped at 512 output tokens by default. Configure
+`NEURALNOTES_OLLAMA_MAX_OUTPUT_TOKENS` to a value from 1 through 4,096 to change
+the cap. This limits generated output length; it does not limit retrieved input
+tokens or estimate electricity and hardware costs.
+
 ## Recent generation summary
 
 `GET /v1/observability/summary` reports p50 and p95 Ollama request latency and

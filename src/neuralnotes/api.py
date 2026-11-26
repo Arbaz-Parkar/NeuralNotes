@@ -194,6 +194,7 @@ def answer_workspace(
         model_name=settings.ollama_model,
         base_url=settings.ollama_base_url,
         timeout_seconds=settings.ollama_timeout_seconds,
+        max_output_tokens=settings.ollama_max_output_tokens,
     )
     response.headers["X-Prompt-Version"] = ACTIVE_ANSWER_PROMPT_VERSION
     try:

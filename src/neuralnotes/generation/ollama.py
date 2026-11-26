@@ -26,6 +26,7 @@ class OllamaAnswerGenerator:
         model_name: str = "qwen3.5:4b",
         base_url: str = "http://localhost:11434",
         timeout_seconds: float = 120.0,
+        max_output_tokens: int = 512,
     ) -> None:
         if not model_name.strip():
             raise ValueError("model_name must not be empty.")
@@ -33,9 +34,12 @@ class OllamaAnswerGenerator:
             raise ValueError("base_url must not be empty.")
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds must be greater than zero.")
+        if max_output_tokens <= 0:
+            raise ValueError("max_output_tokens must be greater than zero.")
         self._model_name = model_name
         self._endpoint = f"{base_url.rstrip('/')}/api/chat"
         self._timeout_seconds = timeout_seconds
+        self._max_output_tokens = max_output_tokens
 
     def generate(
         self,
@@ -50,7 +54,10 @@ class OllamaAnswerGenerator:
             # Qwen3.5 otherwise emits long reasoning before its structured answer.
             "think": False,
             "format": DraftAnswer.model_json_schema(),
-            "options": {"temperature": 0},
+            "options": {
+                "temperature": 0,
+                "num_predict": self._max_output_tokens,
+            },
             "messages": [
                 {
                     "role": "system",
@@ -73,7 +80,6 @@ class OllamaAnswerGenerator:
         )
 
         started_at = perf_counter()
-        started_at = perf_counter()
         try:
             with urlopen(request, timeout=self._timeout_seconds) as response:
                 response_payload = json.loads(response.read().decode("utf-8"))
@@ -92,25 +98,24 @@ class OllamaAnswerGenerator:
                 "Ollama returned a response that was not valid JSON."
             ) from exc
 
+        request_duration_ms = (perf_counter() - started_at) * 1_000
+        prompt_tokens = response_payload.get("prompt_eval_count")
+        completion_tokens = response_payload.get("eval_count")
+        if not isinstance(prompt_tokens, int) or isinstance(prompt_tokens, bool):
+            prompt_tokens = None
+        if not isinstance(completion_tokens, int) or isinstance(
+            completion_tokens, bool
+        ):
+            completion_tokens = None
+
         span = trace.get_current_span()
         if span.is_recording():
-            span.set_attribute(
-                "llm.request.duration_ms", (perf_counter() - started_at) * 1_000
-            )
-            prompt_tokens = response_payload.get("prompt_eval_count")
-            completion_tokens = response_payload.get("eval_count")
-            if isinstance(prompt_tokens, int) and not isinstance(prompt_tokens, bool):
+            span.set_attribute("llm.request.duration_ms", request_duration_ms)
+            if prompt_tokens is not None:
                 span.set_attribute("llm.usage.input_tokens", prompt_tokens)
-            if isinstance(completion_tokens, int) and not isinstance(
-                completion_tokens, bool
-            ):
+            if completion_tokens is not None:
                 span.set_attribute("llm.usage.output_tokens", completion_tokens)
-            if (
-                isinstance(prompt_tokens, int)
-                and not isinstance(prompt_tokens, bool)
-                and isinstance(completion_tokens, int)
-                and not isinstance(completion_tokens, bool)
-            ):
+            if prompt_tokens is not None and completion_tokens is not None:
                 span.set_attribute(
                     "llm.usage.total_tokens", prompt_tokens + completion_tokens
                 )
@@ -122,7 +127,6 @@ class OllamaAnswerGenerator:
                     "llm.response.duration_ms", total_duration_ns / 1_000_000
                 )
 
-        request_duration_ms = (perf_counter() - started_at) * 1_000
         record_generation(request_duration_ms, prompt_tokens, completion_tokens)
 
         try:
