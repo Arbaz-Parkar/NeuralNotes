@@ -26,7 +26,7 @@ from neuralnotes.generation import (
 from neuralnotes.generation.prompts import ACTIVE_ANSWER_PROMPT_VERSION
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.settings import Settings
-from neuralnotes.telemetry import tracer
+from neuralnotes.telemetry import generation_summary, tracer
 
 settings = Settings()
 logger = logging.getLogger(__name__)
@@ -127,6 +127,12 @@ def get_db_session(request: Request) -> Iterator[Session]:
 async def health_check() -> dict[str, str]:
     """Report that the API process is responding."""
     return {"status": "ok"}
+
+
+@app.get("/v1/observability/summary", tags=["observability"])
+def observability_summary() -> dict[str, int | float | None]:
+    """Return bounded, process-local generation latency and token summaries."""
+    return generation_summary()
 
 
 @app.post("/v1/search", response_model=SearchResponse, tags=["retrieval"])

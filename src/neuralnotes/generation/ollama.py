@@ -2,11 +2,15 @@
 
 import json
 from collections.abc import Sequence
+from time import perf_counter
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from opentelemetry import trace
+
 from neuralnotes.generation.models import DraftAnswer, RetrievedPassage
 from neuralnotes.generation.prompts import get_answer_prompt
+from neuralnotes.telemetry import record_generation
 
 
 class OllamaGenerationError(RuntimeError):
@@ -68,6 +72,8 @@ class OllamaAnswerGenerator:
             method="POST",
         )
 
+        started_at = perf_counter()
+        started_at = perf_counter()
         try:
             with urlopen(request, timeout=self._timeout_seconds) as response:
                 response_payload = json.loads(response.read().decode("utf-8"))
@@ -85,6 +91,39 @@ class OllamaAnswerGenerator:
             raise OllamaGenerationError(
                 "Ollama returned a response that was not valid JSON."
             ) from exc
+
+        span = trace.get_current_span()
+        if span.is_recording():
+            span.set_attribute(
+                "llm.request.duration_ms", (perf_counter() - started_at) * 1_000
+            )
+            prompt_tokens = response_payload.get("prompt_eval_count")
+            completion_tokens = response_payload.get("eval_count")
+            if isinstance(prompt_tokens, int) and not isinstance(prompt_tokens, bool):
+                span.set_attribute("llm.usage.input_tokens", prompt_tokens)
+            if isinstance(completion_tokens, int) and not isinstance(
+                completion_tokens, bool
+            ):
+                span.set_attribute("llm.usage.output_tokens", completion_tokens)
+            if (
+                isinstance(prompt_tokens, int)
+                and not isinstance(prompt_tokens, bool)
+                and isinstance(completion_tokens, int)
+                and not isinstance(completion_tokens, bool)
+            ):
+                span.set_attribute(
+                    "llm.usage.total_tokens", prompt_tokens + completion_tokens
+                )
+            total_duration_ns = response_payload.get("total_duration")
+            if isinstance(total_duration_ns, int) and not isinstance(
+                total_duration_ns, bool
+            ):
+                span.set_attribute(
+                    "llm.response.duration_ms", total_duration_ns / 1_000_000
+                )
+
+        request_duration_ms = (perf_counter() - started_at) * 1_000
+        record_generation(request_duration_ms, prompt_tokens, completion_tokens)
 
         try:
             content = response_payload["message"]["content"]

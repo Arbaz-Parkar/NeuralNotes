@@ -1,5 +1,17 @@
 # Observability
 
+## Recent generation summary
+
+`GET /v1/observability/summary` reports p50 and p95 Ollama request latency and
+average input/output tokens from up to the latest 1,000 model calls in the API
+process. Values reset when the API restarts. This local diagnostic is not a
+durable evaluation result or an estimated monetary cost.
+
+```powershell
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/v1/observability/summary" |
+    ConvertTo-Json -Depth 4
+```
+
 The service can export traces to Jaeger over OTLP/HTTP. Local tracing uses the
 console exporter when `NEURALNOTES_OTEL_EXPORTER_ENDPOINT` is unset.
 
