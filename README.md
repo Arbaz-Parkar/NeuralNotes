@@ -1,5 +1,13 @@
 # NeuralNotes
 
+> **Project status — 26 November 2026:** Ingestion, workspace-scoped BM25
+> retrieval, and retrieval evaluation/ablations are implemented. Phase 6 has a
+> local Ollama answer endpoint with structural citation validation and tools
+> for human grounding review. The recent 40-claim sample used AI-suggested
+> labels, so it is not human evaluation or judge-calibration evidence. Phase 6
+> semantic evaluation remains open; research-agent/MCP, UI/security, and
+> deployment work remain ahead.
+
 ## Auditing answer grounding
 
 NeuralNotes checks that answer citations refer to passages returned by retrieval.
@@ -38,7 +46,7 @@ test split for a final evaluation after the protocol is fixed.
 
 NeuralNotes is a study and research workspace designed to make answers about technical documents traceable, measurable, and improvable. The long-term goal is to ingest papers and notes, retrieve relevant passages, and answer questions with citations that point back to their sources.
 
-> **Project status — 19 November 2026:** ingestion, workspace-scoped retrieval, and
+> **Project status — 24 November 2026:** ingestion, workspace-scoped retrieval, and
 > the retrieval evaluation harness are implemented. The verified set contains
 > 56 answerable development questions and 18 answerable test questions, plus six
 > unanswerable questions in each split. Phase 5 compared chunking, BM25/RRF
