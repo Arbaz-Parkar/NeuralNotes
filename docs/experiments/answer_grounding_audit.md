@@ -64,54 +64,56 @@ set before their scores are used for comparisons.
 
 ## Development pilot (2026-11-24)
 
-The first review covered 20 generated claims from 10 verified development
-questions, labeled by one reviewer. Nineteen claims were supported and one was
-partially supported, for a supported-claim rate of 0.950 (19/20). At the answer
-level, 9 of 10 answers were fully supported and one was partially supported
-(0.900 fully supported). There were no unsupported or unverifiable judgments.
+The first review file contained 20 generated claims from 10 verified
+development questions. Its labels were suggested by an AI assistant and
+recorded under a reviewer pseudonym; they were not independently hand-labeled
+or verified by a human reviewer. The file reported 19 supported and one
+partially supported claim, and 9 fully supported and one partially supported
+answer. These are workflow outputs only, not human evaluation results.
 
-This is a small workflow pilot, not a reliable estimate of overall answer
-faithfulness. With one reviewer, inter-reviewer agreement and Cohen's kappa
-were unavailable. Expand the sample and obtain independent overlapping labels
-before using it to calibrate or compare an automated judge. The reviewed JSONL
-and generated reports are local evaluation artifacts; this summary records the
-result without committing source passage text.
+This was a small workflow pilot, not a reliable estimate of answer faithfulness.
+Because the labels were AI-suggested, reviewer agreement and Cohen's kappa from
+these files do not measure human agreement. Obtain independently reviewed human
+labels before calibrating or comparing an automated judge. The JSONL and
+generated reports are local artifacts; this note records the workflow result
+without committing source passage text.
 
 ## Expanded development sample (2026-11-24)
 
-The review was expanded to 40 claims across 18 development questions, still
-with one reviewer. Thirty-seven claims were supported, two were partially
-supported, and one was unsupported. The supported-claim rate was 0.925 (37/40).
-At the answer level, 15 of 18 answers were fully supported, two were partially
-supported, and one was unsupported; the fully supported answer rate was 0.833.
-There were no unverifiable judgments. The unsupported claim cited a passage
-from the FLARE paper while answering a question about R2AG.
+The review file was expanded to 40 claims across 18 development questions.
+Those labels were also supplied by an AI assistant, not independently
+hand-labeled by a human. The file reported 37 supported, two partially
+supported, and one unsupported claim (0.925), and 15 fully supported, two
+partially supported, and one unsupported answer (0.833). The apparent
+unsupported case cited a passage from the FLARE paper for an R2AG question.
 
-These results describe this small development sample only. They are not a
-held-out test result, and a single reviewer provides no inter-reviewer
-agreement or calibration evidence for an automated judge. Keep prompt tuning
-on dev data and obtain independent overlapping labels before making broader
-faithfulness claims.
+These are AI-assisted workflow outputs only, not valid human evaluation
+results or a held-out test result. Replace the labels with independent human
+judgments before drawing faithfulness conclusions or calibrating an automated
+judge. Keep prompt tuning on dev data.
 
 ## First automated-judge calibration (2026-11-24)
 
 The local `qwen2.5:1.5b` judge predicted `supported` for all 40 claims. Against
-the single-reviewer labels (37 supported, two partially supported, one
+the AI-suggested labels (37 supported, two partially supported, one
 unsupported), exact agreement was 0.925 (37/40), but Cohen's kappa was 0.000:
 the judge assigned only one label, so its apparent agreement came from the
-majority class. It missed both partial labels and the unsupported claim. Do not
-use this judge for scoring or prompt comparisons in its current form. The
-per-claim rationales and confusion matrix are in the local generated report.
+majority class. These figures do not calibrate the judge because the reference
+labels were not independently human-verified. Its rationales also show that it
+missed the apparent partial and unsupported cases. Do not use this judge for
+scoring or prompt comparisons in its current form. The per-claim rationales and
+confusion matrix are in the local generated report.
 
 An exploratory rerun with `qwen3.5:4b` predicted 37 supported and three
 partially supported claims, with no unsupported predictions. Against the same
-human labels, it matched 36/40 claims (0.900 exact agreement; Cohen's kappa
+AI-suggested labels, it matched 36/40 claims (0.900 exact agreement; Cohen's kappa
 approximately 0.289). It correctly marked one of the two partial claims, but
 missed the other partial claim and the unsupported claim, and incorrectly
 marked two supported claims as partial. This is a small development-only
 comparison; `qwen3.5:4b` is also the answer-generation model, so this run is not
-an independent-judge result. Neither tested judge is suitable for scoring or
-prompt comparisons yet.
+an independent-judge result. These agreement figures are not human calibration
+results. Neither tested judge is suitable for scoring or prompt comparisons
+yet.
 
 ## Collect claims for review
 
