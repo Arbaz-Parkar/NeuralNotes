@@ -26,6 +26,7 @@ from neuralnotes.generation import (
 from neuralnotes.generation.prompts import ACTIVE_ANSWER_PROMPT_VERSION
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.settings import Settings
+from neuralnotes.telemetry import tracer
 
 settings = Settings()
 logger = logging.getLogger(__name__)
@@ -89,23 +90,30 @@ async def log_request(request: Request, call_next):
     """Attach a request id and log request outcome without logging its body."""
     request_id = uuid4()
     started_at = perf_counter()
-    try:
-        response = await call_next(request)
-    except Exception:
-        logger.exception("request failed", extra={"request_id": request_id})
-        raise
+    with tracer.start_as_current_span("http.request") as span:
+        span.set_attribute("http.request.method", request.method)
+        span.set_attribute("url.path", request.url.path)
+        try:
+            response = await call_next(request)
+        except Exception:
+            logger.exception("request failed", extra={"request_id": request_id})
+            raise
 
-    duration_ms = (perf_counter() - started_at) * 1_000
-    response.headers["X-Request-ID"] = str(request_id)
-    logger.info(
-        "request completed method=%s path=%s status_code=%s duration_ms=%.2f",
-        request.method,
-        request.url.path,
-        response.status_code,
-        duration_ms,
-        extra={"request_id": request_id},
-    )
-    return response
+        duration_ms = (perf_counter() - started_at) * 1_000
+        span.set_attribute("http.response.status_code", response.status_code)
+        span.set_attribute("request.duration_ms", duration_ms)
+        trace_id = format(span.get_span_context().trace_id, "032x")
+        response.headers["X-Request-ID"] = str(request_id)
+        response.headers["X-Trace-ID"] = trace_id
+        logger.info(
+            "request completed method=%s path=%s status_code=%s duration_ms=%.2f",
+            request.method,
+            request.url.path,
+            response.status_code,
+            duration_ms,
+            extra={"request_id": request_id},
+        )
+        return response
 
 
 def get_db_session(request: Request) -> Iterator[Session]:
@@ -127,10 +135,12 @@ def search_workspace(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> SearchResponse:
     """Return the highest-scoring BM25 passages from the requested workspace."""
-    index = build_workspace_bm25_index(session, request.workspace_id)
-    hits = index.search(request.query, top_k=request.top_k)
-    if request.min_score is not None:
-        hits = tuple(hit for hit in hits if hit.score >= request.min_score)
+    with tracer.start_as_current_span("retrieval") as span:
+        index = build_workspace_bm25_index(session, request.workspace_id)
+        hits = index.search(request.query, top_k=request.top_k)
+        if request.min_score is not None:
+            hits = tuple(hit for hit in hits if hit.score >= request.min_score)
+        span.set_attribute("retrieval.result_count", len(hits))
     return SearchResponse(
         results=[
             SearchResult(
@@ -156,10 +166,12 @@ def answer_workspace(
     response: Response,
 ) -> GroundedAnswer:
     """Generate a cited answer from workspace-scoped BM25 passages."""
-    index = build_workspace_bm25_index(session, request.workspace_id)
-    hits = index.search(request.query, top_k=request.top_k)
-    if request.min_score is not None:
-        hits = tuple(hit for hit in hits if hit.score >= request.min_score)
+    with tracer.start_as_current_span("retrieval") as span:
+        index = build_workspace_bm25_index(session, request.workspace_id)
+        hits = index.search(request.query, top_k=request.top_k)
+        if request.min_score is not None:
+            hits = tuple(hit for hit in hits if hit.score >= request.min_score)
+        span.set_attribute("retrieval.result_count", len(hits))
 
     passages = tuple(
         RetrievedPassage(
@@ -179,6 +191,12 @@ def answer_workspace(
     )
     response.headers["X-Prompt-Version"] = ACTIVE_ANSWER_PROMPT_VERSION
     try:
-        return generate_grounded_answer(request.query, passages, generator)
+        with tracer.start_as_current_span("generation") as span:
+            span.set_attribute("llm.model", settings.ollama_model)
+            span.set_attribute("prompt.version", ACTIVE_ANSWER_PROMPT_VERSION)
+            answer = generate_grounded_answer(request.query, passages, generator)
+            span.set_attribute("answer.abstained", answer.abstained)
+            span.set_attribute("answer.claim_count", len(answer.claims))
+            return answer
     except OllamaGenerationError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
