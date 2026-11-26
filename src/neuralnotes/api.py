@@ -7,7 +7,7 @@ from time import perf_counter
 from typing import Annotated
 from uuid import UUID, uuid4
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -23,6 +23,7 @@ from neuralnotes.generation import (
     RetrievedPassage,
     generate_grounded_answer,
 )
+from neuralnotes.generation.prompts import ACTIVE_ANSWER_PROMPT_VERSION
 from neuralnotes.logging_config import configure_logging
 from neuralnotes.settings import Settings
 
@@ -152,6 +153,7 @@ def search_workspace(
 def answer_workspace(
     request: SearchRequest,
     session: Annotated[Session, Depends(get_db_session)],
+    response: Response,
 ) -> GroundedAnswer:
     """Generate a cited answer from workspace-scoped BM25 passages."""
     index = build_workspace_bm25_index(session, request.workspace_id)
@@ -175,6 +177,7 @@ def answer_workspace(
         base_url=settings.ollama_base_url,
         timeout_seconds=settings.ollama_timeout_seconds,
     )
+    response.headers["X-Prompt-Version"] = ACTIVE_ANSWER_PROMPT_VERSION
     try:
         return generate_grounded_answer(request.query, passages, generator)
     except OllamaGenerationError as exc:
